@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kinematik – Interaktives Lernprogramm (HTL)</title>
+<style>
+/* ============================================================
+   Kinematik-Lernprogramm  –  Design-System
+   Farben: Dunkelblau / Weiß / dezente Akzente
+   ============================================================ */
+:root{
+  --navy-900:#071a33;
+  --navy-800:#0b2545;
+  --navy-700:#13315c;
+  --navy-600:#1c4176;
+  --navy-500:#2b5aa0;
+  --blue-400:#3f7bd8;
+  --blue-100:#e8f0fb;
+  --accent:#17b3c9;      /* Cyan-Akzent */
+  --accent-2:#f5a524;    /* Amber-Akzent */
+  --ok:#1e9e6a;
+  --warn:#d9822b;
+  --err:#d64550;
+  --ink:#16202e;
+  --ink-soft:#455468;
+  --line:#d9e2ef;
+  --card:#ffffff;
+  --bg:#f2f6fc;
+  --shadow:0 10px 30px rgba(11,37,69,.10);
+  --shadow-sm:0 4px 14px rgba(11,37,69,.08);
+  --radius:14px;
+  --radius-sm:9px;
+  --mono:"Consolas","SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px;line-height:1.6;
+}
+a{color:var(--navy-500);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.25;color:var(--navy-800);margin:0 0 .5em}
+h1{font-size:1.85rem}
+h2{font-size:1.45rem;border-bottom:3px solid var(--blue-100);padding-bottom:.35em}
+h3{font-size:1.18rem;color:var(--navy-600)}
+h4{font-size:1.02rem;color:var(--navy-600)}
+/* etwas Luft über Zwischenüberschriften in Karten (z. B. „Gegeben" direkt nach der Angabe) */
+.card h4{margin-top:14px}
+.card > h4:first-child{margin-top:0}
+/* breite Tabellen auf schmalen Bildschirmen horizontal scrollbar machen */
+.tblwrap{overflow-x:auto;max-width:100%}
+@media(max-width:900px){ .tblwrap .tbl{min-width:560px} }
+p{margin:.55em 0}
+small{color:var(--ink-soft)}
+code{font-family:var(--mono);background:#eef3fa;padding:.1em .35em;border-radius:5px;font-size:.92em}
+
+/* ---------- Layout ---------- */
+#app{display:flex;min-height:100vh}
+#sidebar{
+  width:290px;flex:0 0 290px;background:linear-gradient(180deg,var(--navy-900),var(--navy-700));
+  color:#dbe7f7;position:sticky;top:0;height:100vh;overflow-y:auto;padding:18px 14px 40px;
+  transition:margin-left .25s ease;
+}
+#sidebar .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 14px;border-bottom:1px solid rgba(255,255,255,.14);margin-bottom:12px}
+#sidebar .brand .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--blue-400));display:grid;place-items:center;font-weight:800;color:#04243a;font-size:1.15rem}
+#sidebar .brand b{color:#fff;display:block;font-size:1.02rem;letter-spacing:.2px}
+#sidebar .brand span{font-size:.74rem;opacity:.8}
+#sidebar nav a{
+  display:flex;align-items:center;gap:9px;color:#c9d9ef;padding:8px 10px;border-radius:9px;
+  font-size:.9rem;margin:1px 0;text-decoration:none;border-left:3px solid transparent;
+}
+#sidebar nav a:hover{background:rgba(255,255,255,.08);text-decoration:none}
+#sidebar nav a.active{background:rgba(23,179,201,.18);border-left-color:var(--accent);color:#fff;font-weight:600}
+#sidebar nav .group{margin:12px 8px 4px;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#7fa3d0}
+#sidebar nav a .ico{width:18px;text-align:center;opacity:.9}
+#sidebar .prog{margin-top:16px;padding:10px 12px;background:rgba(255,255,255,.07);border-radius:10px;font-size:.8rem}
+#sidebar .prog .bar{height:8px;background:rgba(255,255,255,.16);border-radius:6px;overflow:hidden;margin-top:6px}
+#sidebar .prog .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#7ee0a0);transition:width .4s}
+
+#main{flex:1;min-width:0;display:flex;flex-direction:column}
+#topbar{
+  position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);padding:10px 20px;display:flex;align-items:center;gap:14px;
+}
+#topbar .hamb{display:none;background:var(--navy-700);color:#fff;border:0;border-radius:9px;padding:7px 11px;font-size:1.1rem;cursor:pointer}
+#topbar .crumb{font-size:.86rem;color:var(--ink-soft)}
+#topbar .crumb b{color:var(--navy-700)}
+#topbar .spacer{flex:1}
+.pill{font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--blue-100);color:var(--navy-600)}
+.pill.acc{background:#e2f7fb;color:#0a7c8c}
+.pill.warn{background:#fdf0dc;color:#9a6113}
+.pill.ok{background:#e2f6ec;color:#12764f}
+#content{padding:22px 26px 80px;max-width:1150px;width:100%;margin:0 auto}
+.view{display:none;animation:fade .28s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- Cards & generic ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:20px 22px;margin:16px 0}
+.card.tight{padding:14px 16px}
+.grid{display:grid;gap:16px}
+.grid.c2{grid-template-columns:repeat(2,1fr)}
+.grid.c3{grid-template-columns:repeat(3,1fr)}
+.grid.c4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1000px){.grid.c3,.grid.c4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.grid.c2,.grid.c3,.grid.c4{grid-template-columns:1fr}}
+.note{border-left:4px solid var(--accent);background:#effafc;padding:12px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin:12px 0}
+.note.warn{border-color:var(--accent-2);background:#fff8ec}
+.note.err{border-color:var(--err);background:#fdeff0}
+.note.ok{border-color:var(--ok);background:#eefaf3}
+.note b{color:var(--navy-800)}
+.kbd{font-family:var(--mono);font-size:.82em;background:#eef3fa;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px}
+ul.clean{list-style:none;padding-left:0}
+ul.clean li{padding-left:22px;position:relative;margin:.3em 0}
+ul.clean li:before{content:"▸";position:absolute;left:4px;color:var(--accent);font-weight:700}
+.tag{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.03em;padding:2px 8px;border-radius:20px;margin-right:6px}
+.tag.pdf{background:#e2f7fb;color:#0a7c8c;border:1px solid #bde9f1}
+.tag.neu{background:#efe9ff;color:#5b3fbf;border:1px solid #d8ccff}
+.tag.leicht{background:#e2f6ec;color:#12764f}
+.tag.mittel{background:#fdf0dc;color:#9a6113}
+.tag.schwer{background:#fdecec;color:#a52a33}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--navy-600);background:var(--navy-700);color:#fff;border-radius:9px;padding:8px 14px;font-size:.88rem;font-weight:600;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--navy-600)}
+.btn.ghost{background:#fff;color:var(--navy-700)}
+.btn.ghost:hover{background:var(--blue-100)}
+.btn.acc{background:var(--accent);border-color:var(--accent);color:#04303a}
+.btn.acc:hover{filter:brightness(1.05)}
+.btn.small{padding:5px 10px;font-size:.8rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+input[type=text],input[type=number],select,textarea{
+  font-family:inherit;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);width:100%;
+}
+input[type=range]{width:100%;accent-color:var(--navy-600)}
+label.fld{display:block;font-size:.8rem;color:var(--ink-soft);margin:8px 0 3px;font-weight:600}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.hr{height:1px;background:var(--line);margin:16px 0;border:0}
+
+/* ---------- Formeln (eigene Math-Darstellung) ---------- */
+.formula{
+  font-family:"Cambria Math","Times New Roman",Georgia,serif;font-size:1.16rem;
+  background:#f7faff;border:1px solid var(--line);border-left:4px solid var(--navy-500);
+  border-radius:var(--radius-sm);padding:12px 16px;margin:10px 0;color:var(--navy-800);
+  overflow-x:auto;
+}
+.formula.big{font-size:1.34rem;text-align:center;padding:16px}
+/* Inline-Formelzeichen im Fließtext (ohne Kasten, keine Zeilenüberlappung) */
+.ifx{font-family:"Cambria Math","Times New Roman",Georgia,serif;font-size:1.06em;font-weight:700;
+  color:var(--navy-800);white-space:nowrap;background:#eef4fd;border-radius:5px;padding:0 5px}
+/* Trenner zwischen mehreren Formeln in einem Kasten */
+.fsep{display:inline-block;width:1px;height:1.15em;background:#bccce0;margin:0 16px;vertical-align:-.18em}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .18em;font-size:.94em}
+.frac>span{display:block;padding:0 .22em}
+.frac>span:first-child{border-bottom:1.6px solid currentColor}
+.vec{position:relative}
+.vec:after{content:"→";position:absolute;top:-.62em;left:0;font-size:.8em;color:var(--accent)}
+.dot{position:relative}
+.dot:after{content:"·";position:absolute;top:-.95em;left:50%;transform:translateX(-50%);font-size:.9em}
+.ddot:after{content:"··";letter-spacing:-.12em}
+sub,sup{font-size:.72em}
+
+/* ---------- Tabellen ---------- */
+table.tbl{width:100%;border-collapse:collapse;font-size:.9rem;margin:10px 0}
+table.tbl th,table.tbl td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.tbl th{background:var(--navy-700);color:#fff;font-weight:600;position:sticky;top:0}
+table.tbl tr:nth-child(even) td{background:#f8fbff}
+table.tbl td.c{text-align:center}
+.scroll-y{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius-sm)}
+
+/* ---------- Rechenmodus ---------- */
+.exhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.exbody .angabe{background:#f7faff;border:1px dashed var(--blue-400);border-radius:var(--radius-sm);padding:12px 14px;margin:8px 0}
+.given-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0}
+.given-grid .g{background:#fff;border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.9rem}
+.given-grid .g b{display:block;font-size:.72rem;color:var(--ink-soft);letter-spacing:.04em;text-transform:uppercase}
+.checkbox-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:10px}
+.steps{margin-top:12px}
+.step{border:1px solid var(--line);border-radius:var(--radius-sm);margin:7px 0;overflow:hidden;background:#fff}
+.step>summary{cursor:pointer;padding:9px 13px;font-weight:600;font-size:.9rem;background:#f4f8fd;list-style:none;display:flex;gap:9px;align-items:center}
+.step>summary::-webkit-details-marker{display:none}
+.step>summary .num{width:22px;height:22px;border-radius:50%;background:var(--navy-600);color:#fff;display:grid;place-items:center;font-size:.76rem;flex:0 0 22px}
+.step[open]>summary{background:var(--blue-100)}
+.step .inner{padding:11px 14px;font-size:.93rem;border-top:1px solid var(--line)}
+.hints .hint{border-left:4px solid var(--accent-2);background:#fff8ec;padding:9px 12px;border-radius:0 8px 8px 0;margin:7px 0;font-size:.9rem}
+.result-box{margin-top:10px;padding:10px 13px;border-radius:9px;font-weight:600;display:none}
+.result-box.ok{display:block;background:#eefaf3;border:1px solid #bfe8d4;color:#0f6b47}
+.result-box.bad{display:block;background:#fdeff0;border:1px solid #f3c6ca;color:#a52a33}
+.result-box.tip{display:block;background:#fff8ec;border:1px solid #f3ddb6;color:#8a5a12}
+.answer-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.answer-row input{max-width:180px}
+.answer-row .unit{font-weight:600;color:var(--ink-soft)}
+
+/* ---------- Formelsammlung ---------- */
+.fcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.fcard{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px;box-shadow:var(--shadow-sm);position:relative}
+.fcard .cat{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.fcard .fav{position:absolute;top:10px;right:10px;cursor:pointer;font-size:1.1rem;color:#c4d2e6;background:none;border:0}
+.fcard .fav.on{color:var(--accent-2)}
+.fcard dl{margin:8px 0 0;font-size:.85rem}
+.fcard dt{font-weight:700;color:var(--navy-600);margin-top:6px}
+.fcard dd{margin:0;color:var(--ink-soft)}
+
+/* ---------- Quiz ---------- */
+.q{border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;margin:12px 0;background:#fff}
+.q .qt{font-weight:600;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;background:#f7faff;border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin:6px 0;cursor:pointer;font-size:.92rem;transition:.12s}
+.opt:hover{border-color:var(--blue-400);background:var(--blue-100)}
+.opt.correct{background:#eefaf3;border-color:#8fd7b6;color:#0f6b47;font-weight:600}
+.opt.wrong{background:#fdeff0;border-color:#eaa9ae;color:#a52a33}
+.opt:disabled{cursor:default}
+.q .expl{display:none;margin-top:8px;font-size:.88rem;background:#f4f8fd;border-radius:9px;padding:9px 12px}
+.q .expl.show{display:block}
+
+/* ---------- Animationen / Diagramme ---------- */
+.canvas-wrap{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow-sm)}
+canvas{width:100%;display:block;border-radius:8px;background:#fbfdff}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--ink-soft);margin-top:6px}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.ctrls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:10px}
+.readout{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.readout .r{background:#f4f8fd;border:1px solid var(--line);border-radius:9px;padding:7px 12px;font-size:.86rem;min-width:120px}
+.readout .r b{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft)}
+
+/* ---------- Sonstiges ---------- */
+.accordion{border:1px solid var(--line);border-radius:var(--radius-sm);margin:8px 0;background:#fff;overflow:hidden}
+.accordion>summary{cursor:pointer;padding:11px 14px;font-weight:600;background:#f4f8fd;list-style:none}
+.accordion>summary::-webkit-details-marker{display:none}
+.accordion[open]>summary{background:var(--blue-100)}
+.accordion .inner{padding:12px 16px;border-top:1px solid var(--line)}
+.badge-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--accent);margin-right:6px}
+.kpi{display:flex;gap:14px;flex-wrap:wrap}
+.kpi .k{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 16px;min-width:130px;box-shadow:var(--shadow-sm)}
+.kpi .k b{display:block;font-size:1.5rem;color:var(--navy-700)}
+.kpi .k span{font-size:.76rem;color:var(--ink-soft)}
+footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);font-size:.78rem;color:var(--ink-soft)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+@media(max-width:900px){
+  #sidebar{position:fixed;z-index:60;margin-left:-300px;box-shadow:var(--shadow)}
+  #sidebar.open{margin-left:0}
+  #topbar .hamb{display:inline-block}
+  #content{padding:16px 14px 70px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<aside id="sidebar">
+  <div class="brand">
+    <div class="logo">K</div>
+    <div><b>Kinematik</b><span>HTL · Bewegungslehre · 3AHME</span></div>
+  </div>
+  <nav id="nav">
+    <div class="group">Überblick</div>
+    <a data-view="start"><span class="ico">◆</span>Start &amp; Dashboard</a>
+    <a data-view="pdfanalyse"><span class="ico">▤</span>PDF-Analyse &amp; Kontrolltabelle</a>
+    <div class="group">Theorie (Kapitel 4)</div>
+    <a data-view="grundlagen"><span class="ico">4.1</span>Grundlagen der Kinematik</a>
+    <a data-view="punkt"><span class="ico">4.2</span>Kinematik des Punktes</a>
+    <a data-view="gleichfoermig"><span class="ico">↦</span>Gleichförmige Bewegung</a>
+    <a data-view="beschleunigt"><span class="ico">⇗</span>Gleichmäßig beschleunigte Bewegung</a>
+    <a data-view="freierfall"><span class="ico">↓</span>Freier Fall &amp; senkrechter Wurf</a>
+    <a data-view="zweidim"><span class="ico">⊞</span>Ebene Bewegung (x-y)</a>
+    <a data-view="wurf"><span class="ico">⌒</span>Horizontaler &amp; schiefer Wurf</a>
+    <div class="group">Üben &amp; Werkzeuge</div>
+    <a data-view="rechnen"><span class="ico">✎</span>Interaktiver Rechenmodus</a>
+    <a data-view="formeln"><span class="ico">ƒ</span>Formelsammlung</a>
+    <a data-view="animation"><span class="ico">▶</span>Animationen</a>
+    <a data-view="diagramme"><span class="ico">∿</span>Verknüpfte Diagramme</a>
+    <a data-view="quiz"><span class="ico">?</span>Wissensquiz</a>
+    <a data-view="fortschritt"><span class="ico">✓</span>Lernfortschritt</a>
+  </nav>
+  <div class="prog">
+    <div class="row" style="justify-content:space-between"><span>Lernfortschritt</span><b id="progPct">0 %</b></div>
+    <div class="bar"><i id="progBar"></i></div>
+    <div style="margin-top:6px;opacity:.85"><span id="progTxt">0 von 0 Kapiteln erledigt</span></div>
+  </div>
+</aside>
+
+<div id="main">
+  <header id="topbar">
+    <button class="hamb" id="hambBtn" aria-label="Menü">☰</button>
+    <div class="crumb" id="crumb">Start</div>
+    <div class="spacer"></div>
+    <span class="pill acc">g = 9,81 m/s²</span>
+    <button class="btn ghost small" id="resetBtn" title="Lernfortschritt zurücksetzen">↺ Reset</button>
+  </header>
+
+  <main id="content">
+
+  <!-- ================= START / DASHBOARD ================= -->
+  <section class="view active" id="view-start">
+    <h1>Kinematik – interaktives Lernprogramm</h1>
+    <p class="lead">Vollständiges digitales Lernskript zur <b>Bewegungslehre</b> auf HTL-Niveau, aufgebaut aus der hochgeladenen PDF
+      <i>„Mechanik – 1. Test"</i> (Kapitel 4.1 bis 4.2, Druckseiten 54–83). Es enthält Theorie, vollständig gerechnete Beispiele,
+      einen interaktiven Rechenmodus mit Ergebniskontrolle, eine Formelsammlung, Animationen und verknüpfte Diagramme sowie ein Quiz.</p>
+
+    <div class="kpi">
+      <div class="k"><b id="kpiPdf">66</b><span>analysierte PDF-Seiten</span></div>
+      <div class="k"><b id="kpiCh">15</b><span>Theorie-Kapitel</span></div>
+      <div class="k"><b id="kpiEx">30</b><span>Aufgaben im Rechenmodus</span></div>
+      <div class="k"><b id="kpiFo">40</b><span>Formeln</span></div>
+    </div>
+
+    <div class="grid c2">
+      <div class="card">
+        <h3>Was dich hier erwartet</h3>
+        <ul class="clean">
+          <li><b>Theorie:</b> Jedes Thema der PDF Schritt für Schritt erklärt, mit Formelzeichen, Einheiten und Skizzen.</li>
+          <li><b>Gerechnete Beispiele:</b> Alle Rechenbeispiele der PDF mit vollständigem Lösungsweg.</li>
+          <li><b>Rechenmodus:</b> Originalaufgaben der PDF + neue Aufgaben (leicht/mittel/schwer) mit Hilfen in 3 Stufen und automatischer Ergebniskontrolle.</li>
+          <li><b>Formelsammlung:</b> Alle Formeln mit Bedeutung, Einheiten, Anwendungsbereich und Umformungen – durchsuchbar und markierbar.</li>
+          <li><b>Animationen &amp; Diagramme:</b> Bewegung live, dazu gekoppelte s‑t‑, v‑t‑ und a‑t‑Diagramme.</li>
+          <li><b>Quiz &amp; Lernfortschritt:</b> Multiple‑Choice mit Sofort-Feedback und Speicherung im Browser.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>So arbeitest du am besten</h3>
+        <ol>
+          <li>Starte mit <a data-goto="grundlagen">Grundlagen</a> und arbeite die Kapitel der Reihe nach durch.</li>
+          <li>Öffne zu jedem Kapitel die passenden <a data-goto="rechnen">Aufgaben im Rechenmodus</a> und rechne <b>zuerst selbst</b>.</li>
+          <li>Nutze bei Bedarf die Hilfen 1–3 – erst danach die Musterlösung.</li>
+          <li>Prüfe dein Verständnis im <a data-goto="quiz">Quiz</a> und wiederhole falsch beantwortete Fragen.</li>
+          <li>Markiere erledigte Kapitel – dein Fortschritt wird automatisch gespeichert.</li>
+        </ol>
+        <div class="note"><b>Vorzeichenkonvention der PDF:</b> Aufwärts/Rechts positiv. Der freie Fall und das Bremsen sind Bewegungen mit <b>negativer Beschleunigung</b>; in die Formeln wird dann <span class="ifx">a = −g</span> eingesetzt.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Inhaltsübersicht (Kapitel 4 – Kinematik)</h3>
+      <table class="tbl">
+        <thead><tr><th>Abschnitt</th><th>Thema</th><th>Druckseite (PDF-Seite)</th></tr></thead>
+        <tbody>
+          <tr><td>4.</td><td>Kinematik – Einführung</td><td>54 (3)</td></tr>
+          <tr><td>4.1</td><td>Relativität der Bewegung, Bewegungsformen, Superposition</td><td>55–57 (4–6)</td></tr>
+          <tr><td>4.1.4</td><td>Kinematische Größen (v, a, Ableitungen)</td><td>58–59 (7–8)</td></tr>
+          <tr><td>4.2</td><td>Kinematik des Punktes, Freiheitsgrade</td><td>60 (9)</td></tr>
+          <tr><td>4.2.2</td><td>Eindimensionale Kinematik, gleichförmige &amp; beschleunigte Bewegung</td><td>61–73 (10–23)</td></tr>
+          <tr><td>4.2.3</td><td>Ebene Bewegung im kartesischen System, Wurf</td><td>74–83 (24–33)</td></tr>
+          <tr><td>Anhang</td><td>Beispielsammlung zur Testvorbereitung (Beispiele 9–16)</td><td>107–110 (57–62)</td></tr>
+          <tr><td>Aufgaben</td><td>Aufgabensammlung (gescannte Aufgabenblätter)</td><td>111–114 (63–66)</td></tr>
+        </tbody>
+      </table>
+      <p><small>Hinweis: Die PDF besteht aus Foliensatz-Seiten und eingescannten handschriftlichen Mitschriften/Aufgabenblättern.
+      Formelkästchen sind auf den Folien teilweise als leere graue Flächen eingebettet; diese Inhalte wurden aus dem umgebenden Text
+      und der Standardliteratur rekonstruiert und sind entsprechend gekennzeichnet.</small></p>
+    </div>
+  </section>
+
+  <!-- ================= PDF-ANALYSE ================= -->
+  <section class="view" id="view-pdfanalyse">
+    <h1>Verpflichtende PDF-Analyse</h1>
+    <p>Die PDF <i>„Mechanik _ 2026 -1. Test.pdf"</i> umfasst <b>66 Seiten</b> (iOS-Scan, PDF 1.3) und enthält 60 Schriftarten sowie
+      225 eingebettete Bilder. Sie besteht aus zwei Teilen: einem Foliensatz „Kinematik – Bewegungslehre" (Druckseiten 54–110) und
+      eingescannten handschriftlichen Mitschriften bzw. Aufgabenblättern.</p>
+
+    <div class="note"><b>Methodik der Analyse:</b> Die Datei wurde seitenweise als Bild gerendert (110–220 dpi) und zusätzlich mit
+      Textextraktion ausgewertet. Handschriftliche Ergänzungen, Formelkästchen und Skizzen wurden visuell ausgewertet.
+      Die folgende Kontrolltabelle listet <b>jede</b> Seite auf. Leere Seiten sind ausdrücklich als leer gekennzeichnet – es wurden
+      keine Inhalte erfunden.</div>
+
+    <div class="row" style="margin:12px 0">
+      <input type="text" id="pdfFilter" placeholder="In der Tabelle suchen (z. B. Wurf, Aufzug, leer) …" style="max-width:420px">
+      <span class="pill" id="pdfCount">66 Seiten</span>
+    </div>
+
+    <div class="scroll-y">
+      <table class="tbl" id="pdfTable">
+        <thead><tr><th style="width:70px">PDF-Seite</th><th style="width:70px">Druck</th><th>Thema / Inhalt</th><th>Formeln / Kernaussagen</th><th>Beispiele / Aufgaben</th><th style="width:110px">Übernommen</th></tr></thead>
+        <tbody>
+          <tr><td class="c">1</td><td class="c">–</td><td>Titelblatt „Määäm"</td><td>–</td><td>–</td><td><span class="pill ok">leer</span></td></tr>
+          <tr><td class="c">2</td><td class="c">–</td><td>Handschriftliche Notiz zur Beurteilung (22. Sept. 2026)</td><td>4 Tests, 4 SMÜs, mündliche Stunden, Mitarbeit, HÜ+Tafel, 1 Referat</td><td>–</td><td><span class="pill">Kontext</span></td></tr>
+          <tr><td class="c">3</td><td class="c">54</td><td>4. Kinematik – Einführung</td><td>Definition: Teilgebiet der Dynamik, Bewegung in Zeit und Raum, ohne Ursache/Wirkung</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">4</td><td class="c">55</td><td>4.1 Relativität, Bewegungsformen, Superposition</td><td>Absolute Bewegung gibt es nicht; Bezugssystem; Translation &amp; Rotation</td><td>Skizze ABC→A₂B₂C₂</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">5</td><td class="c">56</td><td>4.1.1 Translation</td><td>Kongruente Bahnen aller Punkte; Schwerpunkt genügt</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">6</td><td class="c">57</td><td>4.1.2 Rotation / 4.1.3 Superpositionsgesetz</td><td>Koaxiale Kreisbahnen; unabhängige Teilbewegungen getrennt untersuchbar</td><td>Waagrechter Wurf als Beispiel</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">7</td><td class="c">58</td><td>4.1.4 Kinematische Größen</td><td>v<sub>m</sub>=Δs/Δt=(s₂−s₁)/(t₂−t₁); v=lim Δs/Δt; a<sub>m</sub>=Δv/Δt</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">8</td><td class="c">59</td><td>Momentanbeschleunigung</td><td>a=lim Δv/Δt = v̇ = s̈; Punkt=1. Ableitung, zwei Punkte=2. Ableitung</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">9</td><td class="c">60</td><td>4.2 Kinematik des Punktes / 4.2.1 Freiheitsgrade</td><td>kartesisch (x,y,z) bzw. polar (r,α,β); 1/2/3 Freiheitsgrade; Punkt nur translatorisch</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">10</td><td class="c">61</td><td>4.2.2 Eindimensionale Kinematik</td><td>s=f(t); Zusammenhang von s‑t, v‑t, a‑t; Δs=v·t</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">11</td><td class="c">62</td><td>Gleichförmige Bewegung</td><td>a=0, v=const; s = s₀ + v·t; Beispiel-Angabe</td><td>Zwei Fahrzeuge, AB=200 km, v₁=90, v₂=30 km/h</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">12</td><td class="c">63</td><td>Beispiele gleichförmige Bewegung</td><td>Treffpunkt/Treffzeit; Ampel; Überholvorgang</td><td>t=6000 s, s₁=150 km; v=15 m/s; t=10,8 s, s=359,96 m</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">13</td><td class="c">64</td><td>Gleichförmig beschleunigte Bewegung</td><td>a=const; v=v₀+a·t; s=s₀+v₀t+½at²</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">14</td><td class="c">65</td><td>Diagramme beschleunigt/verzögert</td><td>a&gt;0 bzw. a&lt;0; s‑t, v‑t, a‑t</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">15</td><td class="c">–</td><td>Handschrift: Herleitung</td><td>s = v₀t + (v−v₀)/2·t = v₀t + ½at²; Δv=v−v₀=a·t</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">16</td><td class="c">66</td><td>Beispiel Aufzug</td><td>Seilriss: v₁=v₀−g·t₁; s=Δs₁+Δs₂</td><td>v₁=4,019 m/s; s=0,85 m</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">17</td><td class="c">67</td><td>Beispiel Paketförderanlage</td><td>Drei Abschnitte, v‑t‑ und a‑t‑Diagramm</td><td>v₂=5,43 m/s; Δs₃=4,89 m; t=33,85 s; s<sub>ges</sub>=47,89 m</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">18</td><td class="c">68</td><td>SMÜ Reaktions-/Bremsweg (A, B)</td><td>Δs=v₀·t<sub>R</sub>+v₀/2·t<sub>B</sub></td><td>A: Δs=20 m, t=0,3 s → v₀≈13,4 m/s; B: Δs=30 m</td><td><span class="pill ok">ja*</span></td></tr>
+          <tr><td class="c">19</td><td class="c">69</td><td>Handschriftliche Lösung (Paketförderanlage)</td><td>v₂=√(2a₂Δs₂+v₁²)=5,426 m/s; Δs₃=(v₂²−v₃²)/(2a₃)=4,9 m</td><td>Betrag wegen Δs</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">20</td><td class="c">70</td><td>Leere Folie</td><td>–</td><td>–</td><td><span class="pill ok">leer</span></td></tr>
+          <tr><td class="c">21</td><td class="c">71</td><td>Beispiel: 1. und 10. Meter</td><td>Δs₁=v₁t₁/2; v=a·t; t=√(2Δs/a)</td><td>a=0,4 m/s²; t₁=2,236 s; v=2,83 m/s</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">22</td><td class="c">72</td><td>Beispiel: senkrechter Wurf nach oben</td><td>v=v₀−g·t; Δs=v₀t−½gt²; t<sub>s</sub>=v₀/g</td><td>v₀=20 m/s → h=20,39 m; t<sub>s</sub>=2,04 s; t<sub>W</sub>=4,08 s</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">23</td><td class="c">73</td><td>Ungleichförmig beschleunigte Bewegung</td><td>a=f(t); v=∫a dt; s=∫v dt</td><td>Beispiel a=6t−4, s(0)=−6 m, s(2)=10 m</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">24</td><td class="c">74</td><td>4.2.3 Ebene Bewegung (kartesisch)</td><td>r=(x,y); Δr=Δx+Δy; v=lim Δr/Δt</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">25</td><td class="c">75</td><td>Geschwindigkeitskomponenten</td><td>v=v<sub>x</sub>+v<sub>y</sub>; v tangiert Bahn; v=v(t)</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">26</td><td class="c">76</td><td>Beschleunigungskomponenten</td><td>a=lim Δv/Δt; a<sub>x</sub>, a<sub>y</sub> vektoriell addierbar</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">27</td><td class="c">77</td><td>Hodograf</td><td>Beschleunigungsvektor i. A. nicht tangential</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">28</td><td class="c">78</td><td>Beispiel ebene Bewegung</td><td>v<sub>x</sub>=10t+5; v<sub>y</sub>=3t²−10</td><td>t=3 s: Weg, Geschwindigkeit, Beschleunigung</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">29</td><td class="c">79</td><td>Beispiel: Horizontaler Wurf</td><td>x: a<sub>x</sub>=0, v<sub>x</sub>=v₀, s<sub>x</sub>=v₀t; y: a<sub>y</sub>=g</td><td>v₀=10 m/s, h=20 m → t<sub>w</sub>=2,02 s, s<sub>x</sub>=20,2 m</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">30</td><td class="c">80</td><td>Lösung Horizontaler Wurf</td><td>Funktionen a,v,s in x und y</td><td>t<sub>w</sub>=√(2h/g); s<sub>x</sub>=v₀·t<sub>w</sub></td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">31</td><td class="c">81</td><td>Beispiel: Schiefer Wurf</td><td>Komponenten, Wurfweite, max. Höhe, Wurf-/Steigzeit</td><td>α=30°, v₀=20 m/s</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">32</td><td class="c">82</td><td>Leere Folie</td><td>–</td><td>–</td><td><span class="pill ok">leer</span></td></tr>
+          <tr><td class="c">33</td><td class="c">83</td><td>Leere Folie</td><td>–</td><td>–</td><td><span class="pill ok">leer</span></td></tr>
+          <tr><td class="c">34</td><td class="c">84</td><td>4.2.4 Polarkoordinaten</td><td>Zerlegung in r und φ; Radialgeschwindigkeit v<sub>r</sub>=ṙ; Umfangsgeschwindigkeit v<sub>φ</sub>=r·ω (Formelkasten im Scan leer)</td><td>–</td><td><span class="pill ok">ja*</span></td></tr>
+          <tr><td class="c">35</td><td class="c">85</td><td>Geschwindigkeitsänderung Δv</td><td>Vier Komponenten: Δv<sub>r</sub>, v<sub>φ</sub>Δφ, v<sub>r</sub>Δφ, Δv<sub>φ</sub>; ω in 1/s</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">36</td><td class="c">86</td><td>Radial-/Umfangs-/Coriolisbeschleunigung</td><td>a<sub>r</sub>=r̈−rω²; a<sub>φ</sub>=rα+2ṙω; Coriolis 2ṙω; a=√(a<sub>r</sub>²+a<sub>φ</sub>²)</td><td>–</td><td><span class="pill ok">ja*</span></td></tr>
+          <tr><td class="c">37</td><td class="c">87</td><td>Beispiel Kurbel/Hülse</td><td>ω=2 s⁻¹, v<sub>r</sub>=0,5 m/s, r₀=0,2 m</td><td>r, φ, v<sub>φ</sub>, a<sub>r</sub>, a<sub>φ</sub> nach t=2 s</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">38</td><td class="c">88</td><td>Beispiel Polarkoordinaten</td><td>r=2t m; φ=0,2t rad</td><td>Lage, v, a nach t=5 s</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">39</td><td class="c">89</td><td>4.2.5 Kreisbewegung</td><td>v<sub>r</sub>=0; v<sub>φ</sub>=rω; a<sub>n</sub>=rω²=v²/r; a<sub>t</sub>=rα (Kästen im Scan leer)</td><td>–</td><td><span class="pill ok">ja*</span></td></tr>
+          <tr><td class="c">40</td><td class="c">90</td><td>Skizze Kreisbewegung</td><td>Herleitung über Δv<sub>n</sub>=vΔφ, Δv<sub>t</sub>=rΔω</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">41</td><td class="c">91</td><td>Momentanbeschleunigungen / Beispiel</td><td>a<sub>n</sub>=v·lim(Δφ/Δt)=vω; a<sub>t</sub>=r·lim(Δω/Δt)=rα</td><td>r=0,2 m, α=4 s⁻²: ω(6 s), Umdrehungen, a<sub>t</sub>, a<sub>n</sub></td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">42</td><td class="c">92</td><td>Beispiele Kreisbewegung</td><td>Bremsvorgang; Winkel zwischen a<sub>ges</sub> und a<sub>t</sub></td><td>n=2000 1/min, t=40 s; α=0,06 1/s², Winkel 80°</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">43</td><td class="c">93</td><td>Beispiel Kreisbahn (x,y)</td><td>s=3t³−9 m, r=9 m; x=r·cosφ, y=r·sinφ</td><td>x,y,v<sub>x</sub>,v<sub>y</sub>,a<sub>x</sub>,a<sub>y</sub> nach t=1,8 s</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">44</td><td class="c">94</td><td>Leere Folie</td><td>–</td><td>–</td><td><span class="pill ok">leer</span></td></tr>
+          <tr><td class="c">45</td><td class="c">95</td><td>Beispiel zwei Massenpunkte auf Kreisbahn</td><td>v₀=2 m/s, r=2 m; P₁ beschleunigt, P₂ verzögert, gleichzeitige Ankunft</td><td>t, a₁, a₂</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">46</td><td class="c">96</td><td>4.3 Ebene Kinematik starrer Körper</td><td>6 Lagekoordinaten (3 T, 3 R) im Raum; eben: 2 T + 1 R</td><td>Mindmap</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">47</td><td class="c">97</td><td>Beschreibung / 4.3.1 Momentanpol</td><td>(y₂−y₁)²+(x₂−x₁)²=l²=const; Lageänderung als Drehung um Pol</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">48</td><td class="c">98</td><td>Momentan-/Geschwindigkeitspol M</td><td>Mittelsenkrechte → gedachter Drehpunkt; Δt→0 ⇒ Momentanpol M</td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">49</td><td class="c">99</td><td>Rast-/Gangpolbahn / Beispiel Rad</td><td>Rastpolbahn (ruhend), Gangpolbahn (bewegt); Abrollen</td><td>Rad d=0,8 m, v<sub>A</sub>=4 m/s → v<sub>B</sub>, v<sub>C</sub>, v<sub>D</sub>, v<sub>E</sub></td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">50</td><td class="c">100</td><td>Lösung Rad</td><td>tanφ=2v<sub>A</sub>/d; v<sub>B</sub>=d·tanφ=2v<sub>A</sub></td><td>v<sub>B</sub>=8 m/s; v<sub>C</sub>=v<sub>E</sub>=5,7 m/s; v<sub>D</sub>=0</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">51</td><td class="c">101</td><td>Beispiel gleitende Stange</td><td>l=6 m, φ=60°, v<sub>B</sub>=2 m/s</td><td>v<sub>A</sub>, ω</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">52</td><td class="c">102</td><td>Beispiel Schubkurbelgetriebe</td><td>r=0,12 m, l=0,4 m, φ=20°, n=2000 1/min</td><td>v<sub>B</sub>, v<sub>C</sub></td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">53</td><td class="c">103</td><td>4.4 Kinematik der Relativbewegung</td><td>Führungs-, Relativ-, Absolutbewegung; v<sub>abs</sub>=v<sub>f</sub>+v<sub>rel</sub></td><td>–</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">54</td><td class="c">104</td><td>Leere Folie</td><td>–</td><td>–</td><td><span class="pill ok">leer</span></td></tr>
+          <tr><td class="c">55</td><td class="c">105</td><td>4.4.1 Beschleunigungsbeziehung / Beispiel Boot</td><td>a<sub>abs</sub>=a<sub>f</sub>+a<sub>rel</sub> (translatorische Führung)</td><td>v<sub>F</sub>=2 m/s, v<sub>rel</sub>=3 m/s, AB=200 m, BC=20 m</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">56</td><td class="c">106</td><td>Leere Folie</td><td>–</td><td>–</td><td><span class="pill ok">leer</span></td></tr>
+          <tr><td class="c">57</td><td class="c">107</td><td>Anhang: Beispiele 9, 10, 11</td><td>Senkrechter Wurf; freier Fall mit Δt; Polarkoordinaten am Stab</td><td>Beispiel 9 (60 m, 6 s); Beispiel 10; Beispiel 11 (ω=1,5 s⁻¹, v<sub>r</sub>=0,1t²)</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">58</td><td class="c">108</td><td>Beispiel 12 (schräger Wurf), Beispiel 13</td><td>h=50 m, α=30°, v₀=20 m/s, Rücksprung 80 %, s=90 m</td><td>Beispiel 12 a–c; Beispiel 13 (ges.: v<sub>Bx</sub>, v<sub>By</sub>, s<sub>B</sub>, t<sub>B</sub>)</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">59</td><td class="c">108</td><td>Handschriftliche Lösung Beispiel 12</td><td>v<sub>0x</sub>=17,32; v<sub>0y</sub>=10; v<sub>By</sub>=32,86; s<sub>Bx</sub>=40,36; t<sub>p</sub>=3,58 s</td><td>y=31,26 m; β=32,47°</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">60</td><td class="c">109</td><td>Beispiel 14 (Seilrollen), Beispiel 15 (Kranlaufkatze)</td><td>r₁=200 mm, v₁=1,0 m/s, r₂=120 mm; r₃=150 mm, v₁=1,2 m/s, v₂=0,5 m/s</td><td>ω₁, v₂, ω₂, Momentanpole; v<sub>M</sub>, ω₃</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">61</td><td class="c">110</td><td>Beispiel 15 / Beispiel 16</td><td>Kranlaufkatze; zwei Steine senkrecht nach oben</td><td>v₁=10 m/s (Turm), v₂=15 m/s (Boden), gleichzeitiger Aufprall</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">62</td><td class="c">110</td><td>Wiederholung Beispiel 15/16</td><td>identisch zu Seite 61</td><td>–</td><td><span class="pill">Dublette</span></td></tr>
+          <tr><td class="c">63</td><td class="c">111</td><td>Aufgabe 2</td><td>α=60°, v₀=60 m/s, Wand s=200 m, β=45°</td><td>Aufprallpunkt und ‑geschwindigkeit</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">64</td><td class="c">112</td><td>Aufgaben 3 und 8</td><td>Zug 80 km/h, Regentropfen 60°; Wurf nach unten h=50 m</td><td>A3 Tropfengeschwindigkeit; A8 a–d</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">65</td><td class="c">113</td><td>Aufgaben 7, 8, 5, 6</td><td>Induktionsspule 8 cm / 0,05 s; zwei Kugeln Δt; Förderkorb 30 m / 2 s</td><td>h über Spule; Δs(t); v₀ und v</td><td><span class="pill ok">ja</span></td></tr>
+          <tr><td class="c">66</td><td class="c">114</td><td>Aufgaben 12 und 13</td><td>Pkw 0→90 km/h in 20 s; a wächst 0→6 m/s² in 20 s</td><td>a<sub>m</sub>, s; v und s nach 20 s</td><td><span class="pill ok">ja</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><small><b>Legende:</b> <span class="pill ok">ja</span> = Inhalt ins Lernprogramm übernommen · <span class="pill">ja*</span> = Inhalt rekonstruiert, da Formelkasten im Scan leer · <span class="pill ok">leer</span> = Seite enthält keinen verwertbaren Inhalt · <span class="pill">Dublette</span> = Doppelseite.
+      Unleserliche bzw. fehlende Angaben (z. B. Aufgabe 13) sind im Lernprogramm ausdrücklich vermerkt.</small></p>
+  </section>
+  <!-- ================= 4.1 GRUNDLAGEN ================= -->
+  <section class="view" id="view-grundlagen">
+    <h1>4.1 Grundlagen der Kinematik</h1>
+    <p>Die <b>Kinematik</b> ist ein Teilgebiet der <b>Dynamik</b>. Sie beschreibt Bewegungsvorgänge von Körpern in <b>Zeit und Raum</b>,
+      <b>ohne</b> nach Ursache (Kraft) oder Wirkung zu fragen. Die <b>Kinetik</b> dagegen untersucht die Kräfte als Ursache der Bewegung.</p>
+
+    <div class="card">
+      <h3>Relativität der Bewegung und Bezugssystem</h3>
+      <p>Bewegung setzt voraus, dass sich <b>zwei Körper gegenseitig ihre Lage verändern</b>. Der Bewegungsablauf wird dabei immer auf ein
+        <b>Bezugssystem</b> bezogen, das als ruhend betrachtet wird. Eine <b>absolute Bewegung im Raum gibt es nicht</b> – „Bewegung" ist
+        immer relativ zu einem gewählten Bezugssystem zu verstehen.</p>
+      <div class="note"><b>Beispiel:</b> Ein Fahrgast im fahrenden Zug ist gegenüber dem Zug in Ruhe, gegenüber dem Bahnsteig aber bewegt.
+        Die Wahl des Bezugssystems entscheidet also über „ruht" oder „bewegt".</div>
+    </div>
+
+    <div class="card">
+      <h3>Formen der Bewegung</h3>
+      <div class="grid c2">
+        <div>
+          <h4>Translation (Verschiebung)</h4>
+          <p>Der Körper behält seine räumliche Orientierung. <b>Alle Punkte</b> des Körpers haben zu jedem Zeitpunkt den
+            <b>gleichen Bewegungszustand</b> und beschreiben <b>kongruente</b> (geradlinige oder gekrümmte) Bahnen.
+            Zur Beschreibung genügt daher die Bewegung eines einzigen Punktes – üblicherweise des <b>Schwerpunkts</b>.</p>
+        </div>
+        <div>
+          <h4>Rotation (Drehbewegung)</h4>
+          <p>Alle Punkte beschreiben <b>koaxiale Kreise</b>, deren Ebenen senkrecht auf der ortsfesten <b>Drehachse</b> stehen und deren
+            Mittelpunkte auf der Drehachse liegen. Die Drehachse kann innerhalb oder außerhalb des Körpers liegen.</p>
+        </div>
+      </div>
+      <svg viewBox="0 0 620 170" width="100%" style="max-width:620px" role="img" aria-label="Translation und Rotation">
+        <rect x="0" y="0" width="620" height="170" fill="#fbfdff" rx="8"/>
+        <text x="110" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#13315c">Translation</text>
+        <rect x="70" y="45" width="80" height="46" fill="#e8f0fb" stroke="#2b5aa0" stroke-width="1.5" rx="4"/>
+        <circle cx="90" cy="60" r="4" fill="#17b3c9"/><circle cx="130" cy="75" r="4" fill="#17b3c9"/>
+        <path d="M170 68 h60" stroke="#17b3c9" stroke-width="3" marker-end="url(#ar)"/>
+        <rect x="245" y="45" width="80" height="46" fill="#e8f0fb" stroke="#2b5aa0" stroke-width="1.5" rx="4"/>
+        <circle cx="265" cy="60" r="4" fill="#17b3c9"/><circle cx="305" cy="75" r="4" fill="#17b3c9"/>
+        <text x="255" y="120" font-size="11" fill="#455468">alle Punkte gleiche Bahn</text>
+        <text x="455" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#13315c">Rotation</text>
+        <circle cx="470" cy="80" r="52" fill="none" stroke="#2b5aa0" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <circle cx="470" cy="80" r="4" fill="#d64550"/>
+        <line x1="470" y1="80" x2="510" y2="46" stroke="#17b3c9" stroke-width="3"/>
+        <line x1="470" y1="80" x2="428" y2="70" stroke="#17b3c9" stroke-width="3"/>
+        <path d="M495 62 a45 45 0 0 0 -30 -22" fill="none" stroke="#d64550" stroke-width="2" marker-end="url(#ar2)"/>
+        <text x="470" y="152" text-anchor="middle" font-size="11" fill="#455468">Drehung um ortsfeste Achse</text>
+        <defs>
+          <marker id="ar" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#17b3c9"/></marker>
+          <marker id="ar2" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#d64550"/></marker>
+        </defs>
+      </svg>
+      <p>Jede allgemeine Bewegung lässt sich auf diese beiden <b>Grundformen</b> zurückführen: als Überlagerung von Translation und Rotation.</p>
+    </div>
+
+    <div class="card">
+      <h3>4.1.3 Superpositionsgesetz (Überlagerungsgesetz)</h3>
+      <p>Zwei oder mehrere <b>voneinander unabhängige</b> Bewegungsvorgänge, die <b>gleichzeitig</b> stattfinden, können <b>getrennt untersucht</b>
+        werden, ohne dass sich am Endergebnis etwas ändert. Die Gesamtbewegung ergibt sich aus der vektoriellen Überlagerung der Teilbewegungen.</p>
+      <div class="note"><b>Technisches Beispiel:</b> Ein waagrechter Wurf lässt sich zerlegen in
+        eine <b>gleichförmige Bewegung in x‑Richtung</b> (v₀ konstant) und einen <b>freien Fall in y‑Richtung</b> (a = g). Beide Anteile
+        überlagern sich ungestört.</div>
+    </div>
+
+    <div class="card">
+      <h3>4.1.4 Kinematische Größen</h3>
+      <p><b>Länge (Weg)</b> und <b>Zeit</b> sind die Grundgrößen der Kinematik; ihre Einheiten sind <b>Meter [m]</b> und <b>Sekunde [s]</b>.
+        Geschwindigkeit und Beschleunigung sind daraus <b>abgeleitete Größen</b>.</p>
+      <div class="formula big">v<sub>m</sub> = <span class="frac"><span>Δs</span><span>Δt</span></span> = <span class="frac"><span>s<sub>2</sub> − s<sub>1</sub></span><span>t<sub>2</sub> − t<sub>1</sub></span></span></div>
+      <table class="tbl">
+        <thead><tr><th>Zeichen</th><th>Bedeutung</th><th>Einheit</th></tr></thead>
+        <tbody>
+          <tr><td>v<sub>m</sub></td><td>mittlere (durchschnittliche) Geschwindigkeit</td><td>m/s</td></tr>
+          <tr><td>Δs</td><td>Wegänderung (Wegdifferenz) s₂ − s₁</td><td>m</td></tr>
+          <tr><td>Δt</td><td>Zeitänderung (Zeitdifferenz) t₂ − t₁</td><td>s</td></tr>
+        </tbody>
+      </table>
+      <p>Die <b>Momentangeschwindigkeit</b> erhält man durch den <b>Grenzübergang</b> Δt → 0, also als <b>erste Ableitung des Weges nach der Zeit</b>:</p>
+      <div class="formula big">v = <span style="font-style:italic">lim</span><sub>Δt→0</sub> <span class="frac"><span>Δs</span><span>Δt</span></span> = <span class="frac"><span>ds</span><span>dt</span></span> = <span class="dot">s</span></div>
+      <p>Die <b>Beschleunigung</b> ist der Quotient aus Geschwindigkeitsänderung Δv und dafür nötiger Zeitspanne Δt:</p>
+      <div class="formula big">a<sub>m</sub> = <span class="frac"><span>Δv</span><span>Δt</span></span> = <span class="frac"><span>v<sub>2</sub> − v<sub>1</sub></span><span>t<sub>2</sub> − t<sub>1</sub></span></span></div>
+      <div class="formula big">a = <span style="font-style:italic">lim</span><sub>Δt→0</sub> <span class="frac"><span>Δv</span><span>Δt</span></span> = <span class="frac"><span>dv</span><span>dt</span></span> = <span class="dot">v</span> = <span class="dot ddot">s</span> = <span class="frac"><span>d²s</span><span>dt²</span></span></div>
+      <div class="note"><b>Schreibweise der Technik:</b> Ein Punkt über dem Formelzeichen bedeutet die <b>1. Ableitung</b> nach der Zeit
+        (<span class="dot">s</span> = ds/dt), zwei Punkte die <b>2. Ableitung</b> (<span class="dot ddot">s</span> = d²s/dt²).
+        Die momentane Bahnbeschleunigung ist die erste Ableitung der Geschwindigkeit bzw. die zweite Ableitung des Weges.</div>
+      <table class="tbl">
+        <thead><tr><th>Zeichen</th><th>Bedeutung</th><th>Einheit</th></tr></thead>
+        <tbody>
+          <tr><td>v</td><td>Momentangeschwindigkeit eines Körpers/Punktes</td><td>m/s</td></tr>
+          <tr><td>a<sub>m</sub></td><td>mittlere Beschleunigung</td><td>m/s²</td></tr>
+          <tr><td>a</td><td>Momentanbeschleunigung</td><td>m/s²</td></tr>
+          <tr><td>Δv</td><td>Geschwindigkeitsänderung</td><td>m/s</td></tr>
+        </tbody>
+      </table>
+      <div class="note warn"><b>Typischer Fehler:</b> Weg und Geschwindigkeit sind <b>vektorielle</b> Größen. In der eindimensionalen
+        Betrachtung entscheidet das <b>Vorzeichen</b> über die Richtung. Wer Beträge addiert, obwohl sich Richtungen unterscheiden,
+        erhält falsche Ergebnisse.</div>
+      <div class="chapterdone" data-chapter="grundlagen"></div>
+    </div>
+  </section>
+
+  <!-- ================= 4.2 PUNKT ================= -->
+  <section class="view" id="view-punkt">
+    <h1>4.2 Kinematik des Punktes</h1>
+    <p>Um die Bewegung eines komplexen Systems (z. B. eines Pkws mit Kolben, Pleuel, Karosserie, Reifen) zu beschreiben, müsste man
+      streng genommen jeden Einzelpunkt kennen. Meist interessiert jedoch nur die Bewegung <b>eines Einzelteils</b>. Dafür zieht man
+      den <b>Massenmittelpunkt (Schwerpunkt)</b> heran und betrachtet den Körper als <b>Massenpunkt</b>.</p>
+
+    <div class="card">
+      <h3>4.2.1 Freiheitsgrade eines Punktes</h3>
+      <p>Als Bezugssystem verwendet man ein <b>dreiachsiges rechtwinkeliges Koordinatensystem</b>. Die Lage eines Punktes ist durch
+        die Koordinaten <b>(x, y, z)</b> oder durch Polarkoordinaten <b>(r, α, β)</b> festgelegt. Die Anzahl der nötigen Lageparameter
+        nennt man <b>Freiheitsgrade</b>.</p>
+      <div class="grid c3">
+        <div class="card tight"><b>1 Freiheitsgrad</b><p>Der Punkt ist gezwungen, sich auf einer vorgegebenen <b>Raumkurve</b> zu bewegen.</p></div>
+        <div class="card tight"><b>2 Freiheitsgrade</b><p>Der Punkt kann sich in der <b>Ebene</b> bewegen.</p></div>
+        <div class="card tight"><b>3 Freiheitsgrade</b><p>Der Punkt kann sich <b>frei im Raum</b> bewegen.</p></div>
+      </div>
+      <div class="note">Für einen Punkt existiert nur die <b>translatorische</b> Bewegungsform – eine Rotation eines Punktes ist sinnlos.</div>
+    </div>
+
+    <div class="card">
+      <h3>Weg, Ort und Strecke</h3>
+      <p>Zur Beschreibung eines Punktes P entlang einer vorgegebenen Bahn genügt eine Funktion <b>s = f(t)</b>. Man unterscheidet:</p>
+      <ul class="clean">
+        <li><b>Ort s:</b> Lage des Punktes auf der Bahn zu einem Zeitpunkt (mit Vorzeichen, bezogen auf einen Nullpunkt).</li>
+        <li><b>Weg Δs:</b> Änderung des Ortes zwischen zwei Zeitpunkten, Δs = s₂ − s₁ (vorzeichenbehaftet).</li>
+        <li><b>Strecke:</b> der <b>Betrag</b> des tatsächlich durchlaufenen Weges – unabhängig von der Richtung (immer ≥ 0).</li>
+      </ul>
+      <div class="note warn"><b>Typischer Fehler:</b> Bei einer Bewegung mit Richtungsumkehr (z. B. senkrechter Wurf) sind <b>Weg</b> und
+        <b>Strecke</b> nicht gleich! Die Strecke zählt Hin- und Rückweg getrennt, der Weg Δs ist die reine Ortsdifferenz.</div>
+    </div>
+
+    <div class="card">
+      <h3>Zeit und Zeitintervall</h3>
+      <p>Für viele Aufgaben setzt man den Startzeitpunkt <b>t₁ = 0</b> und schreibt für den Endzeitpunkt <b>t₂ = t</b>. Das Zeitintervall
+        ist dann Δt = t. Alle Bewegungsgesetze der PDF sind mit dieser <b>Randbedingung</b> hergeleitet.</p>
+      <div class="chapterdone" data-chapter="punkt"></div>
+    </div>
+  </section>
+
+  <!-- ================= GLEICHFÖRMIG ================= -->
+  <section class="view" id="view-gleichfoermig">
+    <h1>Gleichförmige Bewegung</h1>
+    <p>Eine Bewegung heißt <b>gleichförmig</b>, wenn sich der Punkt mit <b>konstanter Geschwindigkeit</b> bewegt:
+      <b>a = 0, v = const.</b> Voraussetzung ist eine Gerade oder eine nur schwach gekrümmte Bahn.</p>
+
+    <div class="card">
+      <h3>Herleitung aus der PDF</h3>
+      <p>Aus v = const folgt durch Differentiation a = dv/dt = 0 und durch Integration:</p>
+      <div class="formula" style="line-height:2.05">
+        a = 0<br>
+        Δs = v · t<br>
+        s = s₀ + Δs = s₀ + v · t
+      </div>
+      <p>Aus v = ds/dt folgt ds = v·dt. Integration von t₁ bis t₂ liefert mit t₁ = 0 und t₂ = t das <b>Weg-Zeit-Gesetz</b>:</p>
+      <div class="formula big">s = s₀ + v · t</div>
+      <table class="tbl">
+        <thead><tr><th>Zeichen</th><th>Bedeutung</th><th>Einheit</th></tr></thead>
+        <tbody>
+          <tr><td>s</td><td>Ort (Weg) zum Zeitpunkt t</td><td>m</td></tr>
+          <tr><td>s₀</td><td>Anfangsort (Weg vor der Zeitzählung, t = 0)</td><td>m</td></tr>
+          <tr><td>v</td><td>konstante Geschwindigkeit</td><td>m/s</td></tr>
+          <tr><td>t</td><td>Zeit seit Beginn der Zeitzählung</td><td>s</td></tr>
+        </tbody>
+      </table>
+      <p>Der Weg s ist die Summe aus dem bereits vor der Zeitzählung zurückgelegten Weg s₀ und dem mit konstanter Geschwindigkeit v
+        im Zeitabschnitt t zurückgelegten Weg.</p>
+      <div class="note"><b>Diagramme (siehe „Verknüpfte Diagramme"):</b>
+        <ul class="clean" style="margin:.4em 0 0">
+          <li><b>s‑t:</b> Gerade mit der Steigung v (Steigungsdreieck Δs = v·t).</li>
+          <li><b>v‑t:</b> waagrechte Gerade; die <b>Fläche</b> unter der Kurve ist der Weg Δs = v·t.</li>
+          <li><b>a‑t:</b> identisch Null (auf der t‑Achse).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Beispiel aus der PDF (S. 62): Zwei Fahrzeuge fahren aufeinander zu</h3>
+      <p>Ein Fahrzeug fährt mit v₁ = 90 km/h von A nach B. Gleichzeitig fährt ein anderes mit v₂ = 30 km/h von B nach A.
+        Die Entfernung AB = s = 200 km. Gesucht: Treffpunkt und Treffzeit.</p>
+      <details class="accordion"><summary>Lösung anzeigen</summary><div class="inner">
+        <p><b>Gegeben:</b> v₁ = 90 km/h = 25 m/s, v₂ = 30 km/h = 8,33 m/s, s = 200 000 m.</p>
+        <p>Für den Treffpunkt gilt s₁ + s₂ = s mit s₁ = v₁·t und s₂ = v₂·t:</p>
+        <div class="formula">v₁·t + v₂·t = s → t = <span class="frac"><span>s</span><span>v₁ + v₂</span></span> = <span class="frac"><span>200 000 m</span><span>25 m/s + 8,33 m/s</span></span> = 6000 s</div>
+        <p>t = 6000 s = <b>1 h 40 min</b>. Der Treffpunkt liegt bei s₁ = v₁·t = 25 m/s · 6000 s = 150 000 m = <b>150 km</b> von A
+          (bzw. s₂ = 50 km von B).</p>
+      </div></details>
+      <div class="note warn"><b>Typischer Fehler:</b> Geschwindigkeiten <b>immer auf m/s</b> umrechnen (÷ 3,6) und <b>alle</b> Längen
+        auf dieselbe Einheit bringen. 90 km/h = 25 m/s, nicht 90 m/s!</div>
+      <div class="chapterdone" data-chapter="gleichfoermig"></div>
+    </div>
+  </section>
+
+  <!-- ================= BESCHLEUNIGT ================= -->
+  <section class="view" id="view-beschleunigt">
+    <h1>Gleichmäßig beschleunigte Bewegung</h1>
+    <p>Ist die Beschleunigung <b>a = const.</b>, so heißt die Bewegung <b>gleichmäßig beschleunigt</b>. Ist a negativ, heißt sie
+      <b>gleichmäßig verzögert</b>; in die Gleichungen wird dann a negativ eingesetzt.</p>
+
+    <div class="card">
+      <h3>Geschwindigkeit-Zeit-Gesetz</h3>
+      <p>Aus a = dv/dt folgt dv = a·dt. Integration von t₁ bis t₂ ergibt mit t₁ = 0 und t₂ = t:</p>
+      <div class="formula big">v = v₀ + a · t</div>
+      <p><b>Bedeutung:</b> Die Geschwindigkeit wächst (bei a &gt; 0) linear mit der Zeit. v₀ ist die Anfangsgeschwindigkeit zur Zeit t = 0.</p>
+
+      <h3>Ort-(Weg-)Zeit-Gesetz</h3>
+      <p>Aus s = s₀ + ∫v dt und v = v₀ + a·t folgt:</p>
+      <div class="formula big">s = s₀ + v₀ · t + ½ a · t²</div>
+      <p>Eine gleichwertige Schreibweise (aus der Fläche im v‑t‑Diagramm) ist:</p>
+      <div class="formula">s = v₀ · t + <span class="frac"><span>v − v₀</span><span>2</span></span> · t = v₀ · t + <span class="frac"><span>a · t²</span><span>2</span></span></div>
+      <table class="tbl">
+        <thead><tr><th>Zeichen</th><th>Bedeutung</th><th>Einheit</th></tr></thead>
+        <tbody>
+          <tr><td>v₀</td><td>Anfangsgeschwindigkeit (bei t = 0)</td><td>m/s</td></tr>
+          <tr><td>v</td><td>Geschwindigkeit zur Zeit t</td><td>m/s</td></tr>
+          <tr><td>a</td><td>konstante Beschleunigung</td><td>m/s²</td></tr>
+          <tr><td>s₀</td><td>Anfangsort</td><td>m</td></tr>
+        </tbody>
+      </table>
+      <p>Setzt man a = 0, erhält man wieder das Weg-Zeit-Gesetz der gleichförmigen Bewegung.</p>
+      <div class="note"><b>Ohne Anfangsgeschwindigkeit (v₀ = 0, s₀ = 0):</b>
+        <div class="formula" style="margin:6px 0">v = a·t <span class="fsep"></span> s = ½ a t² <span class="fsep"></span> v = √(2 a s) <span class="fsep"></span> t = √(2 s / a)</div>
+        Diese Umformungen sind für viele Aufgaben (freier Fall, Anfahren) besonders nützlich.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Diagramme</h3>
+      <div class="grid c2">
+        <div><h4>a &gt; 0 (beschleunigt)</h4>
+          <ul class="clean">
+            <li><b>a‑t:</b> Parallele zur t‑Achse auf Höhe a; Fläche = Δv.</li>
+            <li><b>v‑t:</b> ansteigende Gerade ab v₀; Steigung = a; Fläche = Δs.</li>
+            <li><b>s‑t:</b> nach oben geöffnete Parabel ab s₀.</li>
+          </ul>
+        </div>
+        <div><h4>a &lt; 0 (verzögert)</h4>
+          <ul class="clean">
+            <li><b>a‑t:</b> Parallele unterhalb der t‑Achse (negativ).</li>
+            <li><b>v‑t:</b> fallende Gerade; Nulldurchgang = Stillstand.</li>
+            <li><b>s‑t:</b> nach unten geöffnete Parabel.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Beispiel aus der PDF (S. 67): Paketförderanlage</h3>
+      <p>Pakete werden auf 36 m waagrecht mit 1,2 m/s gleichförmig bewegt, dann auf einer 7 m langen Rutsche mit 2 m/s² beschleunigt.
+        Danach folgt eine waagrechte Auslaufstrecke mit Verzögerung 3 m/s²; die Endgeschwindigkeit soll 0,2 m/s betragen.
+        Gesucht: a) Geschwindigkeit am Ende der Rutsche, b) Länge der Auslaufstrecke, c) Gesamtlaufzeit.</p>
+      <details class="accordion"><summary>Lösung anzeigen</summary><div class="inner">
+        <p><b>Abschnitt 1 (gleichförmig):</b> Δs₁ = 36 m, v₁ = 1,2 m/s → t₁ = 36 / 1,2 = <b>30 s</b>.</p>
+        <p><b>Abschnitt 2 (beschleunigt, a₂ = +2 m/s², Δs₂ = 7 m):</b>
+          v₂² = v₁² + 2a₂Δs₂ → v₂ = √((1,2)² + 2·2·7) = √29,44 = <b>5,43 m/s</b>.<br>
+          t₂ = (v₂ − v₁)/a₂ = (5,43 − 1,2)/2 = <b>2,11 s</b>.</p>
+        <p><b>Abschnitt 3 (verzögert, a₃ = −3 m/s², v₃ = 0,2 m/s):</b>
+          Δs₃ = (v₂² − v₃²)/(2·|a₃|) = (5,43² − 0,2²)/(2·3) = <b>4,9 m</b>; t₃ = (v₂ − v₃)/|a₃| = 1,74 s.</p>
+        <p><b>Gesamt:</b> t<sub>ges</sub> = 30 + 2,11 + 1,74 = <b>33,85 s</b>; s<sub>ges</sub> = 36 + 7 + 4,89 = <b>47,89 m</b>.</p>
+      </div></details>
+    </div>
+
+    <div class="card">
+      <h3>Beispiel aus der PDF (S. 66): Aufzug – Seilriss</h3>
+      <p>Ein Aufzug fährt mit v₀ = 5 m/s nach oben. Plötzlich reißt das Seil; nach t₁ = 0,1 s spricht die Fangvorrichtung an und setzt
+        den Korb nach weiteren 0,2 s still. Gesucht: a) Größe und Richtung der Geschwindigkeit beim Ansprechen der Fangvorrichtung,
+        b) Gesamtweg bis zum Stillstand.</p>
+      <details class="accordion"><summary>Lösung anzeigen</summary><div class="inner">
+        <p>Im ersten Moment wirkt nur die Erdbeschleunigung (freier Fall, aber mit Aufwärts-Anfangsgeschwindigkeit):</p>
+        <div class="formula">v₁ = v₀ − g·t₁ = 5 − 9,81·0,1 = <b>4,019 m/s</b> (noch nach oben gerichtet)</div>
+        <p>Weg bis zum Ansprechen: Δs₁ = v₀t₁ − ½g t₁² = 5·0,1 − ½·9,81·0,01 = 0,451 m.<br>
+          Weg während des Abbremsens (0,2 s, mittlere Geschwindigkeit (4,019+0)/2): Δs₂ = 4,019·0,2/2 = 0,402 m.</p>
+        <p><b>Gesamtweg:</b> s = 0,451 + 0,402 = <b>0,85 m</b> (nach oben).</p>
+      </div></details>
+      <div class="chapterdone" data-chapter="beschleunigt"></div>
+    </div>
+  </section>
+
+  <!-- ================= FREIER FALL / SENKRECHTER WURF ================= -->
+  <section class="view" id="view-freierfall">
+    <h1>Freier Fall &amp; senkrechter Wurf</h1>
+    <p>Der <b>freie Fall</b> und der <b>senkrechte Wurf</b> sind Sonderfälle der gleichmäßig beschleunigten Bewegung mit der
+      Erdbeschleunigung <b>g = 9,81 m/s²</b>.</p>
+
+    <div class="card">
+      <h3>Freier Fall (aus der Ruhe, nach unten)</h3>
+      <p>Mit v₀ = 0 und a = g gilt (Abwärtsrichtung positiv gewählt):</p>
+      <div class="formula big">v = g · t <span class="fsep"></span> h = ½ g · t² <span class="fsep"></span> v = √(2 g h) <span class="fsep"></span> t = √(2 h / g)</div>
+      <p>Der freie Fall ist unabhängig von der Masse. Der <b>Luftwiderstand</b> wird (außer wenn ausdrücklich verlangt) vernachlässigt.</p>
+      <div class="note"><b>Beispiel S. 79/80 (waagrechter Wurf, y‑Anteil):</b> Aus h = 20 m folgt
+        t = √(2h/g) = √(40/9,81) = 2,02 s – dieselbe Fallzeit wie beim reinen freien Fall.</div>
+    </div>
+
+    <div class="card">
+      <h3>Senkrechter Wurf nach oben</h3>
+      <p>Der Körper startet mit v₀ nach oben; die Erdbeschleunigung wirkt nach unten, also mit <b>negativem</b> Vorzeichen:</p>
+      <div class="formula big">v = v₀ − g · t</div>
+      <div class="formula big">h = v₀ · t − ½ g · t²</div>
+      <p><b>Steigzeit</b> bis zum höchsten Punkt (dort ist v = 0):</p>
+      <div class="formula">t<sub>s</sub> = <span class="frac"><span>v₀</span><span>g</span></span></div>
+      <p><b>Maximale Wurfhöhe:</b></p>
+      <div class="formula">h<sub>max</sub> = <span class="frac"><span>v₀²</span><span>2 g</span></span></div>
+      <p><b>Gesamte Wurfzeit</b> (Steigen + Fallen auf gleiche Höhe): t<sub>W</sub> = 2·t<sub>s</sub>.</p>
+      <div class="note"><b>Zusammenhang:</b> Beim senkrechten Wurf nach oben sind Steig- und Fallphase <b>zeitlich und betragsmäßig
+        symmetrisch</b>: Am Abwurfpunkt kommt der Körper mit derselben Geschwindigkeit |v₀| wieder an, mit der er abgeworfen wurde.</div>
+    </div>
+
+    <div class="card">
+      <h3>Beispiel aus der PDF (S. 72): Senkrechter Wurf nach oben</h3>
+      <p>Eine Kugel wird mit v₀ = 20 m/s senkrecht nach oben geworfen. Gesucht: Wurfhöhe h, Steigzeit t<sub>s</sub>, Wurfzeit t<sub>W</sub>.</p>
+      <details class="accordion"><summary>Lösung anzeigen</summary><div class="inner">
+        <div class="formula">t<sub>s</sub> = v₀/g = 20/9,81 = <b>2,04 s</b></div>
+        <div class="formula">h = v₀·t<sub>s</sub> − ½g t<sub>s</sub>² = 20·2,04 − ½·9,81·2,04² = <b>20,39 m</b></div>
+        <div class="formula">t<sub>W</sub> = 2·t<sub>s</sub> = <b>4,08 s</b></div>
+        <p>Kontrolle über die Energiebeziehung: h = v₀²/(2g) = 400/19,62 = 20,39 m ✓</p>
+      </div></details>
+    </div>
+
+    <div class="card">
+      <h3>Beispiel aus der PDF (Anhang): Wurf vom Dach (Beispiel 9)</h3>
+      <p>Von einem Dach in 60 m Höhe über der Straße wird ein Körper mit v₀ nach oben geworfen. Er fällt an der Wand entlang und
+        schlägt nach insgesamt 6 s auf der Straße auf. Gesucht: a) v₀, b) Aufschlaggeschwindigkeit v₁, c) Gipfelhöhe h über der Straße.</p>
+      <details class="accordion"><summary>Lösung anzeigen</summary><div class="inner">
+        <p>Bezug: Aufwärts positiv, Startpunkt bei 60 m. Aufschlag bei −60 m:</p>
+        <div class="formula">−60 = v₀·6 − ½·9,81·6² → v₀ = (−60 + 176,58)/6 = <b>19,43 m/s</b></div>
+        <p>Aufschlaggeschwindigkeit: v₁ = v₀ − g·t = 19,43 − 9,81·6 = −39,43 m/s → Betrag <b>39,43 m/s</b> nach unten.</p>
+        <p>Gipfelhöhe über der Straße: h = 60 + v₀²/(2g) = 60 + 19,43²/(2·9,81) = <b>79,2 m</b>.</p>
+      </div></details>
+    </div>
+
+    <div class="card">
+      <h3>Beispiel aus der PDF (Anhang, Aufgabe 5/10): Abstand zweier fallender Kugeln</h3>
+      <p>Zwei Kugeln fallen im freien Fall nacheinander mit dem Zeitunterschied Δt von einem Turm. Wie ändert sich der Abstand Δs
+        zwischen ihnen mit der Zeit (Luftwiderstand vernachlässigt, g konstant)?</p>
+      <details class="accordion"><summary>Lösung anzeigen</summary><div class="inner">
+        <p>Kugel 1 (Start bei t = 0): s₁ = ½g t². Kugel 2 (Start bei t = Δt): s₂ = ½g (t − Δt)², gültig für t ≥ Δt.</p>
+        <div class="formula">Δs = s₁ − s₂ = ½g [ t² − (t − Δt)² ] = g · Δt · t − ½ g Δt²</div>
+        <p>Der Abstand wächst also <b>linear mit der Zeit</b>; er ist <b>nicht konstant</b>. Die Zunahmegeschwindigkeit ist g·Δt.</p>
+      </div></details>
+      <div class="chapterdone" data-chapter="freierfall"></div>
+    </div>
+  </section>
+
+  <!-- ================= EBENE BEWEGUNG ================= -->
+  <section class="view" id="view-zweidim">
+    <h1>4.2.3 Ebene Bewegung eines Punktes (x-y-System)</h1>
+    <p>Wird die Bahn gekrümmt, betrachtet man sie in der Ebene mit einem rechtwinkeligen Koordinatensystem. Die Wahl des
+      <b>Bezugssystems</b> ist entscheidend, denn dieselbe Bewegung stellt sich in verschiedenen Systemen unterschiedlich dar.</p>
+
+    <div class="card">
+      <h3>Lage, Geschwindigkeit, Beschleunigung</h3>
+      <p>Die Lage eines Punktes zum Zeitpunkt t wird durch den <b>Lagevektor</b> r bzw. durch die Koordinaten (x, y) beschrieben,
+        die jeweils Funktionen der Zeit sind:</p>
+      <div class="formula big"><span class="vec">r</span> = ( <span class="frac"><span>x</span><span>y</span></span> ) &nbsp;&nbsp;mit&nbsp;&nbsp; x = x(t), y = y(t) <span class="fsep"></span> Δ<span class="vec">r</span> = Δ<span class="vec">x</span> + Δ<span class="vec">y</span></div>
+      <p><b>Mittlere Geschwindigkeit:</b></p>
+      <div class="formula"><span class="frac"><span>Δ<span class="vec">r</span></span><span>Δt</span></span> = <span class="frac"><span>Δ<span class="vec">x</span></span><span>Δt</span></span> + <span class="frac"><span>Δ<span class="vec">y</span></span><span>Δt</span></span></div>
+      <p><b>Momentangeschwindigkeit</b> (Grenzübergang Δt → 0):</p>
+      <div class="formula big"><span class="vec">v</span> = <span style="font-style:italic">lim</span><sub>Δt→0</sub> <span class="frac"><span>Δ<span class="vec">r</span></span><span>Δt</span></span> = <span class="frac"><span>d<span class="vec">r</span></span><span>dt</span></span> <span class="fsep"></span> v<sub>x</sub> = <span class="frac"><span>dx</span><span>dt</span></span>, &nbsp; v<sub>y</sub> = <span class="frac"><span>dy</span><span>dt</span></span></div>
+      <div class="formula big"><span class="vec">v</span> = <span class="vec">v</span><sub>x</sub> + <span class="vec">v</span><sub>y</sub> &nbsp;&nbsp;(Unabhängigkeit der Bewegung in x- und y-Richtung)</div>
+      <p><b>Beschleunigung:</b></p>
+      <div class="formula big"><span class="vec">a</span> = <span style="font-style:italic">lim</span><sub>Δt→0</sub> <span class="frac"><span>Δ<span class="vec">v</span></span><span>Δt</span></span> = <span class="frac"><span>d<span class="vec">v</span></span><span>dt</span></span>, &nbsp;&nbsp; a<sub>x</sub> = <span class="frac"><span>dv<sub>x</sub></span><span>dt</span></span>, &nbsp; a<sub>y</sub> = <span class="frac"><span>dv<sub>y</sub></span><span>dt</span></span></div>
+      <div class="note">Der <b>Geschwindigkeitsvektor tangiert immer die Bahnkurve</b> und ist eine Funktion der Zeit, v = v(t).
+        Der <b>Beschleunigungsvektor</b> steht dagegen im Allgemeinen <b>nicht tangential</b> an der Bahn (siehe Hodograf).</div>
+    </div>
+
+    <div class="card">
+      <h3>Beispiel aus der PDF (S. 78)</h3>
+      <p>Die Bewegung eines Punktes wird durch v<sub>x</sub> = 10t + 5 m/s und v<sub>y</sub> = 3t² − 10 m/s beschrieben. Zur Zeit t = 0
+        ist x = 5 m und y = −10 m. Gesucht: Weg, Geschwindigkeit und Beschleunigung nach t = 3 s.</p>
+      <details class="accordion"><summary>Lösung anzeigen</summary><div class="inner">
+        <p><b>Ort:</b> Integration der Geschwindigkeiten:</p>
+        <div class="formula">x(t) = 5 + ∫(10t+5)dt = 5 + 5t² + 5t &nbsp;→&nbsp; x(3) = 5 + 45 + 15 = 65 m</div>
+        <div class="formula">y(t) = −10 + ∫(3t²−10)dt = −10 + t³ − 10t &nbsp;→&nbsp; y(3) = −10 + 27 − 30 = −13 m</div>
+        <p><b>Geschwindigkeit:</b> v<sub>x</sub>(3) = 35 m/s, v<sub>y</sub>(3) = 17 m/s →
+          v = √(35² + 17²) = <b>38,9 m/s</b>, Richtung α = arctan(17/35) = 25,9°.</p>
+        <p><b>Beschleunigung:</b> a<sub>x</sub> = dv<sub>x</sub>/dt = 10 m/s², a<sub>y</sub> = dv<sub>y</sub>/dt = 6t = 18 m/s² →
+          a = √(10² + 18²) = <b>20,6 m/s²</b>.</p>
+      </div></details>
+      <div class="chapterdone" data-chapter="zweidim"></div>
+    </div>
+  </section>
+
+  <!-- ================= WURF ================= -->
+  <section class="view" id="view-wurf">
+    <h1>Horizontaler &amp; schiefer Wurf</h1>
+    <p>Beide Würfe sind Anwendungen des <b>Superpositionsgesetzes</b>: Die Bewegung setzt sich zusammen aus einer
+      <b>gleichförmigen Horizontalbewegung</b> (x) und einer <b>gleichmäßig beschleunigten Vertikalbewegung</b> (y, freier Fall).</p>
+
+    <div class="card">
+      <h3>Waagrechter (horizontaler) Wurf</h3>
+      <p>Abwurf horizontal mit v₀ aus der Höhe h:</p>
+      <table class="tbl">
+        <thead><tr><th>Richtung</th><th>Beschleunigung</th><th>Geschwindigkeit</th><th>Weg</th></tr></thead>
+        <tbody>
+          <tr><td><b>x</b> (horizontal)</td><td>a<sub>x</sub> = 0</td><td>v<sub>x</sub> = v₀</td><td>s<sub>x</sub> = v₀ · t</td></tr>
+          <tr><td><b>y</b> (vertikal)</td><td>a<sub>y</sub> = g</td><td>v<sub>y</sub> = g · t</td><td>s<sub>y</sub> = ½ g t²</td></tr>
+        </tbody>
+      </table>
+      <p><b>Fallzeit</b> (aus h = ½g t²) und <b>Wurfweite</b>:</p>
+      <div class="formula big">t<sub>w</sub> = √( <span class="frac"><span>2 h</span><span>g</span></span> ) <span class="fsep"></span> s<sub>x</sub> = v₀ · t<sub>w</sub> = v₀ √( <span class="frac"><span>2 h</span><span>g</span></span> )</div>
+      <p>Der Betrag der Gesamtgeschwindigkeit zu jedem Zeitpunkt: v = √(v₀² + (g t)²).</p>
+      <div class="note"><b>Beispiel aus der PDF (S. 79/80):</b> v₀ = 10 m/s, h = 20 m →
+        t<sub>w</sub> = √(2·20/9,81) = <b>2,02 s</b>; s<sub>x</sub> = 10 · 2,02 = <b>20,2 m</b>.</div>
+    </div>
+
+    <div class="card">
+      <h3>Schiefer Wurf (nach oben)</h3>
+      <p>Abwurf unter dem Winkel α zur Horizontalen mit v₀. Zerlegung der Anfangsgeschwindigkeit:</p>
+      <div class="formula big">v<sub>0x</sub> = v₀ · cos α <span class="fsep"></span> v<sub>0y</sub> = v₀ · sin α</div>
+      <table class="tbl">
+        <thead><tr><th>Richtung</th><th>Geschwindigkeit</th><th>Weg</th></tr></thead>
+        <tbody>
+          <tr><td><b>x</b></td><td>v<sub>x</sub> = v₀·cos α (konstant)</td><td>s<sub>x</sub> = v₀·cos α · t</td></tr>
+          <tr><td><b>y</b></td><td>v<sub>y</sub> = v₀·sin α − g·t</td><td>s<sub>y</sub> = v₀·sin α · t − ½ g t²</td></tr>
+        </tbody>
+      </table>
+      <p><b>Steigzeit, Wurfzeit, maximale Höhe und Wurfweite:</b></p>
+      <div class="formula big">t<sub>s</sub> = <span class="frac"><span>v₀ · sin α</span><span>g</span></span> <span class="fsep"></span> t<sub>W</sub> = 2 t<sub>s</sub> = <span class="frac"><span>2 v₀ · sin α</span><span>g</span></span></div>
+      <div class="formula big">h<sub>max</sub> = <span class="frac"><span>v₀² · sin²α</span><span>2 g</span></span> <span class="fsep"></span> w = <span class="frac"><span>v₀² · sin 2α</span><span>g</span></span></div>
+      <div class="note"><b>Merke:</b> Die <b>Wurfweite</b> ist maximal bei α = 45°. Für gleiche Wurfweite gibt es stets zwei Winkel
+        (α und 90° − α). Die <b>maximale Höhe</b> wächst mit sin²α und ist bei α = 90° (senkrechter Wurf) am größten.</div>
+    </div>
+
+    <div class="card">
+      <h3>Schiefer Wurf nach unten</h3>
+      <p>Wird unter α nach unten geworfen, ist die y‑Anfangsgeschwindigkeit negativ: v<sub>0y</sub> = −v₀·sin α. Man setzt in die
+        Gesetze oben einfach v<sub>0y</sub> mit negativem Vorzeichen ein.</p>
+    </div>
+
+    <div class="card">
+      <h3>Beispiel aus der PDF (Anhang, Beispiel 12): Schiefer Wurf mit Rücksprung</h3>
+      <p>Eine Kugel wird von einem Turm (h = 50 m) unter α = 30° gegen die Horizontale mit v₀ = 20 m/s schräg <b>nach unten</b>
+        geworfen und trifft im Punkt B auf den Boden. Dort prallt sie mit <b>80 %</b> ihrer Auftreffgeschwindigkeit zurück und trifft
+        in der Entfernung s = 90 m auf eine vertikale Wand. Gesucht: a) gesamte Wurfzeit, b) Auftreffpunkt an der Wand P(90/y),
+        c) Auftreffwinkel β.</p>
+      <details class="accordion"><summary>Lösung anzeigen</summary><div class="inner">
+        <p><b>Gegeben:</b> v<sub>0x</sub> = 20·cos30° = 17,32 m/s; v<sub>0y</sub> = −20·sin30° = −10 m/s (nach unten).</p>
+        <p><b>a) Wurfzeit bis zum Boden B:</b> −50 = −10·t − ½·9,81·t² → 4,905 t² + 10 t − 50 = 0 →
+          t<sub>B</sub> = <b>2,33 s</b>. Auftreffgeschwindigkeit vertikal: v<sub>By</sub> = −10 − 9,81·2,33 = −32,86 m/s.</p>
+        <p>Auftreffpunkt horizontal: s<sub>Bx</sub> = 17,32 · 2,33 = <b>40,36 m</b>.</p>
+        <p><b>Nach dem Rücksprung</b> (80 %): v′<sub>x</sub> = 0,8·17,32 = 13,86 m/s, v′<sub>y</sub> = 0,8·32,86 = 26,29 m/s (nach oben).<br>
+          Reststrecke bis zur Wand: s<sub>p</sub> = 90 − 40,36 = 49,64 m → t<sub>p</sub> = 49,64 / 13,86 = <b>3,58 s</b>.</p>
+        <p><b>b) Höhe an der Wand:</b> y = v′<sub>y</sub>·t<sub>p</sub> − ½g t<sub>p</sub>² = 26,29·3,58 − 4,905·3,58² = <b>31,3 m</b>.
+          (Maximale Flughöhe des Rücksprungs: h<sub>max</sub> = v′<sub>y</sub>²/(2g) = 35,2 m.)</p>
+        <p><b>c) Auftreffwinkel:</b> v<sub>y</sub> = 26,29 − 9,81·3,58 = −8,83 m/s → β = arctan(8,83/13,86) = <b>32,5°</b>.</p>
+      </div></details>
+      <div class="chapterdone" data-chapter="wurf"></div>
+    </div>
+  </section>
+
+  <!-- ================= RECHENMODUS ================= -->
+  <section class="view" id="view-rechnen">
+    <h1>Interaktiver Rechenmodus</h1>
+    <p>Hier arbeitest du wie mit einem digitalen Nachhilfelehrer: Aufgabe lesen, <b>selbst rechnen</b>, Ergebnis eingeben und
+      kontrollieren lassen. Nutze die Hilfen erst, wenn du nicht weiterkommst – die vollständige Musterlösung kommt zuletzt.</p>
+
+    <div class="card tight">
+      <div class="row">
+        <div style="flex:1;min-width:200px">
+          <label class="fld" for="exTopic">Themengebiet</label>
+          <select id="exTopic"></select>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label class="fld" for="exLevel">Schwierigkeit</label>
+          <select id="exLevel">
+            <option value="">alle</option>
+            <option value="leicht">leicht</option>
+            <option value="mittel">mittel</option>
+            <option value="schwer">schwer</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label class="fld" for="exSource">Quelle</label>
+          <select id="exSource">
+            <option value="">alle</option>
+            <option value="PDF">aus der PDF</option>
+            <option value="neu">neu erstellt</option>
+          </select>
+        </div>
+        <div style="align-self:flex-end"><span class="pill" id="exCount">0 Aufgaben</span></div>
+      </div>
+    </div>
+
+    <div id="exStats" class="kpi" style="margin:6px 0 4px"></div>
+    <div id="exList"></div>
+    <p><small><b>Ergebniskontrolle:</b> Die Eingabe wird mit einer sinnvollen Rundungstoleranz (Standard ±2 %) geprüft.
+      Bitte Zahl <b>und</b> Einheit angeben, z. B. <code>15 m/s</code> oder <code>4,019</code>. Ein Komma ist als Dezimaltrennzeichen erlaubt.</small></p>
+  </section>
+
+  <!-- ================= FORMELSAMMLUNG ================= -->
+  <section class="view" id="view-formeln">
+    <h1>Formelsammlung</h1>
+    <p>Alle Formeln des Kapitels, sortiert nach Themengebieten – mit Bedeutung, Einheiten, Anwendungsbereich und Umformungen.
+      Häufig benötigte Formeln lassen sich über den Stern markieren.</p>
+    <div class="card tight">
+      <div class="row">
+        <input type="text" id="foSearch" placeholder="Formel, Zeichen oder Stichwort suchen …" style="flex:1;min-width:220px">
+        <select id="foCat" style="max-width:260px"></select>
+        <button class="btn ghost small" id="foFavOnly">★ nur Favoriten</button>
+      </div>
+    </div>
+    <div class="fcards" id="foList"></div>
+  </section>
+
+  <!-- ================= ANIMATIONEN ================= -->
+  <section class="view" id="view-animation">
+    <h1>Animationen &amp; Visualisierungen</h1>
+    <p>Stelle die Parameter ein und beobachte die Bewegung. Alle Animationen sind mit den Diagrammen im nächsten Kapitel abgestimmt.</p>
+
+    <div class="card">
+      <h2>1 · Gleichförmige Bewegung</h2>
+      <div class="canvas-wrap"><canvas id="anim1" height="230"></canvas></div>
+      <div class="ctrls">
+        <div><label class="fld">Geschwindigkeit v = <b id="a1v">10</b> m/s</label><input type="range" id="a1vR" min="1" max="40" step="1" value="10"></div>
+        <div><label class="fld">Startort s₀ = <b id="a1s">0</b> m</label><input type="range" id="a1sR" min="0" max="200" step="5" value="0"></div>
+      </div>
+      <div class="readout">
+        <div class="r"><b>Zeit t</b><span id="a1t">0,0 s</span></div>
+        <div class="r"><b>Ort s</b><span id="a1sp">0,0 m</span></div>
+        <div class="r"><b>Weg Δs</b><span id="a1ds">0,0 m</span></div>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="btn" data-play="anim1">▶ Start/Pause</button><button class="btn ghost" data-reset="anim1">↺ Zurücksetzen</button></div>
+    </div>
+
+    <div class="card">
+      <h2>2 · Gleichmäßig beschleunigte Bewegung</h2>
+      <div class="canvas-wrap"><canvas id="anim2" height="230"></canvas></div>
+      <div class="ctrls">
+        <div><label class="fld">Anfangsgeschwindigkeit v₀ = <b id="a2v">0</b> m/s</label><input type="range" id="a2vR" min="0" max="30" step="1" value="0"></div>
+        <div><label class="fld">Beschleunigung a = <b id="a2a">4</b> m/s²</label><input type="range" id="a2aR" min="0.5" max="10" step="0.5" value="4"></div>
+      </div>
+      <div class="readout">
+        <div class="r"><b>Zeit t</b><span id="a2t">0,0 s</span></div>
+        <div class="r"><b>Geschw. v</b><span id="a2vOut">0,0 m/s</span></div>
+        <div class="r"><b>Ort s</b><span id="a2sOut">0,0 m</span></div>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="btn" data-play="anim2">▶ Start/Pause</button><button class="btn ghost" data-reset="anim2">↺ Zurücksetzen</button></div>
+    </div>
+
+    <div class="card">
+      <h2>3 · Freier Fall &amp; senkrechter Wurf</h2>
+      <div class="canvas-wrap"><canvas id="anim3" height="300"></canvas></div>
+      <div class="ctrls">
+        <div><label class="fld">Anfangsgeschwindigkeit v₀ = <b id="a3v">0</b> m/s</label><input type="range" id="a3vR" min="0" max="30" step="1" value="0"></div>
+        <div><label class="fld">Modus</label>
+          <select id="a3mode"><option value="fall">Freier Fall (v₀ nach unten)</option><option value="wurf">Senkrechter Wurf nach oben</option></select>
+        </div>
+      </div>
+      <div class="readout">
+        <div class="r"><b>Zeit t</b><span id="a3t">0,0 s</span></div>
+        <div class="r"><b>Geschw. v</b><span id="a3vOut">0,0 m/s</span></div>
+        <div class="r"><b>Höhe h</b><span id="a3hOut">0,0 m</span></div>
+        <div class="r"><b>Höchster Punkt</b><span id="a3top">–</span></div>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="btn" data-play="anim3">▶ Start/Pause</button><button class="btn ghost" data-reset="anim3">↺ Zurücksetzen</button></div>
+    </div>
+
+    <div class="card">
+      <h2>4 · Schräger Wurf</h2>
+      <div class="canvas-wrap"><canvas id="anim4" height="330"></canvas></div>
+      <div class="ctrls">
+        <div><label class="fld">Anfangsgeschwindigkeit v₀ = <b id="a4v">20</b> m/s</label><input type="range" id="a4vR" min="5" max="40" step="1" value="20"></div>
+        <div><label class="fld">Abwurfwinkel α = <b id="a4a">45</b>°</label><input type="range" id="a4aR" min="5" max="85" step="1" value="45"></div>
+      </div>
+      <div class="readout">
+        <div class="r"><b>Flugzeit t<sub>W</sub></b><span id="a4t">–</span></div>
+        <div class="r"><b>Max. Höhe</b><span id="a4h">–</span></div>
+        <div class="r"><b>Wurfweite</b><span id="a4w">–</span></div>
+        <div class="r"><b>v<sub>x</sub> / v<sub>y</sub></b><span id="a4vxy">–</span></div>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="btn" data-play="anim4">▶ Start/Pause</button><button class="btn ghost" data-reset="anim4">↺ Zurücksetzen</button></div>
+      <div class="legend"><span><i style="background:#d64550"></i>Bahnkurve</span><span><i style="background:#17b3c9"></i>v<sub>x</sub> (konstant)</span><span><i style="background:#f5a524"></i>v<sub>y</sub> (veränderlich)</span></div>
+    </div>
+  </section>
+
+  <!-- ================= DIAGRAMME ================= -->
+  <section class="view" id="view-diagramme">
+    <h1>Verknüpfte Diagramme (s‑t, v‑t, a‑t)</h1>
+    <p>Die drei Diagramme sind <b>miteinander verknüpft</b>: Änderst du v₀ oder a, aktualisieren sich alle Diagramme und die Animation
+      sofort. Der Zeitregler (Cursor) läuft durch alle drei Diagramme synchron.</p>
+
+    <div class="card tight">
+      <div class="row">
+        <div style="flex:1;min-width:210px"><label class="fld">Anfangsort s₀ = <b id="dgS0">0</b> m</label><input type="range" id="dgS0R" min="-50" max="50" step="5" value="0"></div>
+        <div style="flex:1;min-width:210px"><label class="fld">Anfangsgeschw. v₀ = <b id="dgV0">0</b> m/s</label><input type="range" id="dgV0R" min="-30" max="30" step="1" value="0"></div>
+        <div style="flex:1;min-width:210px"><label class="fld">Beschleunigung a = <b id="dgA">2</b> m/s²</label><input type="range" id="dgAR" min="-10" max="10" step="0.5" value="2"></div>
+        <div style="flex:1;min-width:210px"><label class="fld">Zeitbereich bis t = <b id="dgT">10</b> s</label><input type="range" id="dgTR" min="2" max="20" step="1" value="10"></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="dgPlay">▶ Abspielen</button>
+        <button class="btn ghost small" id="dgBack">⏪ Schritt zurück</button>
+        <button class="btn ghost small" id="dgFwd">⏩ Schritt vor</button>
+        <button class="btn ghost small" id="dgPause">⏸ Pause</button>
+        <button class="btn ghost small" id="dgReset">↺ Zurücksetzen</button>
+        <span class="pill" id="dgTval">t = 0,0 s</span>
+      </div>
+    </div>
+
+    <div class="grid c2">
+      <div class="canvas-wrap"><h4 style="margin:2px 0 6px">s‑t‑Diagramm <small>Steigung = Geschwindigkeit</small></h4><canvas id="dgS" height="200"></canvas></div>
+      <div class="canvas-wrap"><h4 style="margin:2px 0 6px">v‑t‑Diagramm <small>Steigung = Beschleunigung, Fläche = Weg</small></h4><canvas id="dgV" height="200"></canvas></div>
+    </div>
+    <div class="canvas-wrap"><h4 style="margin:2px 0 6px">a‑t‑Diagramm <small>Fläche = Geschwindigkeitsänderung Δv</small></h4><canvas id="dgA2" height="170"></canvas></div>
+
+    <div class="readout">
+      <div class="r"><b>t</b><span id="dgrT">0,0 s</span></div>
+      <div class="r"><b>s(t)</b><span id="dgrS">0,0 m</span></div>
+      <div class="r"><b>v(t)</b><span id="dgrV">0,0 m/s</span></div>
+      <div class="r"><b>a(t)</b><span id="dgrA">0,0 m/s²</span></div>
+      <div class="r"><b>Δs (Fläche v‑t)</b><span id="dgrDs">0,0 m</span></div>
+      <div class="r"><b>Δv (Fläche a‑t)</b><span id="dgrDv">0,0 m/s</span></div>
+    </div>
+    <div class="note"><b>Zusammenhang:</b> Die <b>Steigung</b> des s‑t-Diagramms ist die Geschwindigkeit; die <b>Steigung</b> des
+      v‑t-Diagramms ist die Beschleunigung. Umgekehrt ist die <b>Fläche</b> unter dem v‑t-Diagramm der Weg und die <b>Fläche</b> unter
+      dem a‑t-Diagramm die Geschwindigkeitsänderung.</div>
+  </section>
+
+  <!-- ================= QUIZ ================= -->
+  <section class="view" id="view-quiz">
+    <h1>Wissensquiz</h1>
+    <p>Multiple-Choice-Fragen mit sofortigem Feedback und kurzer Erklärung. Falsch beantwortete Fragen kannst du gezielt wiederholen.</p>
+    <div class="card tight">
+      <div class="row">
+        <button class="btn" id="quizStart">▶ Quiz starten</button>
+        <button class="btn ghost" id="quizWrong">↻ Falsche wiederholen</button>
+        <button class="btn ghost" id="quizReset">↺ Zurücksetzen</button>
+        <span class="pill" id="quizScore">0 / 0 richtig</span>
+      </div>
+    </div>
+    <div id="quizList"></div>
+  </section>
+
+  <!-- ================= FORTSCHRITT ================= -->
+  <section class="view" id="view-fortschritt">
+    <h1>Lernfortschritt</h1>
+    <p>Dein Fortschritt wird automatisch im Browser gespeichert (<span class="kbd">LocalStorage</span>). Er bleibt also beim erneuten
+      Öffnen erhalten – solange du denselben Browser und dieselbe Datei verwendest.</p>
+    <div class="kpi">
+      <div class="k"><b id="fsChapters">0/15</b><span>Kapitel erledigt</span></div>
+      <div class="k"><b id="fsEx">0</b><span>Aufgaben richtig gelöst</span></div>
+      <div class="k"><b id="fsQuiz">0</b><span>Quizfragen richtig</span></div>
+      <div class="k"><b id="fsPct">0 %</b><span>Gesamtfortschritt</span></div>
+    </div>
+    <div class="card">
+      <h3>Kapitel</h3>
+      <div id="fsList"></div>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="fsExport">⭳ Fortschritt exportieren</button>
+      <button class="btn ghost" id="fsReset">↺ Fortschritt zurücksetzen</button>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>Kinematik – interaktives Lernprogramm.</b> Erstellt auf Basis der PDF „Mechanik _ 2026 -1. Test" (Kapitel 4, Druckseiten 54–110).
+      Fachliche Grundlage: die PDF; ergänzende Inhalte sind als „neu" gekennzeichnet. Alle Formeln mit g = 9,81 m/s².
+      Für die Anzeige der Mathematik wird ein eingebauter HTML/CSS-Formelsatz verwendet, die Diagramme werden mit HTML5-Canvas gezeichnet –
+      das Programm läuft dadurch vollständig offline und ohne Backend.</p>
+  </footer>
+
+  </main>
+</div>
+</div>
+<script>
+/* ============================================================
+   DATEN: Kapitel, Aufgaben, Formeln, Quiz
+   ============================================================ */
+const G = 9.81; // Erdbeschleunigung in m/s²
+
+/* ---------- Kapitel für den Lernfortschritt ---------- */
+const CHAPTERS = [
+  {id:'grundlagen',   name:'4.1 Grundlagen der Kinematik'},
+  {id:'punkt',        name:'4.2 Kinematik des Punktes'},
+  {id:'gleichfoermig',name:'Gleichförmige Bewegung'},
+  {id:'beschleunigt', name:'Gleichmäßig beschleunigte Bewegung'},
+  {id:'freierfall',   name:'Freier Fall & senkrechter Wurf'},
+  {id:'zweidim',      name:'Ebene Bewegung (x-y)'},
+  {id:'wurf',         name:'Horizontaler & schiefer Wurf'},
+];
+
+/* ---------- Themengebiete der Aufgaben ---------- */
+const TOPICS = {
+  gleichfoermig:'Gleichförmige Bewegung',
+  beschleunigt:'Gleichmäßig beschleunigte Bewegung',
+  freierfall:'Freier Fall & senkrechter Wurf',
+  wurf:'Wurf (horizontal / schräg)',
+};
+
+/* ---------- Aufgaben ----------
+   answers: [{name, value, unit, tol}]  – tol = relative Toleranz (Standard 0.02)
+   steps:   [{t: Titel, h: HTML-Inhalt}] – schrittweise Musterlösung
+   hints:   [Hilfe1, Hilfe2, Hilfe3]
+--------------------------------------------------------------- */
+const EXERCISES = [
+/* ===== GLEICHFÖRMIG ===== */
+{
+  id:'g1', topic:'gleichfoermig', source:'PDF', level:'leicht',
+  title:'Zwei Fahrzeuge fahren aufeinander zu (PDF S. 62)',
+  angabe:'Ein Fahrzeug fährt mit v₁ = 90 km/h von A in Richtung B. Gleichzeitig fährt ein anderes Fahrzeug mit v₂ = 30 km/h von B nach A. Die Entfernung AB beträgt 200 km.',
+  given:[['v₁','90 km/h = 25 m/s'],['v₂','30 km/h = 8,33 m/s'],['AB','200 km = 200 000 m']],
+  gesucht:['Treffzeit t','Treffpunkt s₁ (von A aus)'],
+  hints:['Beide Fahrzeuge sind gleich lang unterwegs. Die Summe ihrer Wege ist genau die Strecke AB.',
+         'Nutze s₁ = v₁·t und s₂ = v₂·t sowie s₁ + s₂ = AB. Damit: (v₁+v₂)·t = AB.',
+         't = AB/(v₁+v₂) = 200 000 m / 33,33 m/s.'],
+  steps:[
+    {t:'Gegeben und gesucht', h:'v₁ = 25 m/s, v₂ = 8,33 m/s, s<sub>ges</sub> = 200 000 m. Gesucht: t und s₁.'},
+    {t:'Ansatz (Weg-Zeit-Gesetz)', h:'s₁ = v₁·t und s₂ = v₂·t. Beim Treffen gilt s₁ + s₂ = s<sub>ges</sub>.'},
+    {t:'Formel umformen', h:'v₁·t + v₂·t = s<sub>ges</sub> → t = s<sub>ges</sub> / (v₁ + v₂).'},
+    {t:'Werte einsetzen', h:'t = 200 000 / (25 + 8,33) = 200 000 / 33,33.'},
+    {t:'Rechenweg', h:'t = 6000 s = 1 h 40 min. s₁ = v₁·t = 25 · 6000 = 150 000 m.'},
+    {t:'Ergebnis & Kontrolle', h:'t = <b>6000 s</b>, s₁ = <b>150 km</b> (also 50 km von B). Kontrolle: 150 + 50 = 200 km ✓'}
+  ],
+  answers:[{name:'Treffzeit t',value:6000,unit:'s'},{name:'Treffpunkt s₁',value:150,unit:'km'}]
+},
+{
+  id:'g2', topic:'gleichfoermig', source:'PDF', level:'leicht',
+  title:'Ampelphase (PDF S. 63)',
+  angabe:'Im Augenblick, in dem sich ein Fahrzeug 600 m vor der nächsten Verkehrsampel befindet, schaltet diese auf Grün. Die Grünphase dauert 40 Sekunden. Wie groß muss die Geschwindigkeit des Fahrzeugs im Durchschnitt mindestens sein, damit es die Grünphase noch erreicht?',
+  given:[['s','600 m'],['t','40 s']],
+  gesucht:['erforderliche Geschwindigkeit v'],
+  hints:['Es liegt eine gleichförmige Bewegung vor: v = s/t.'],
+  steps:[
+    {t:'Gegeben und gesucht', h:'s = 600 m, t = 40 s, gesucht v.'},
+    {t:'Formel', h:'Gleichförmige Bewegung: Δs = v·t.'},
+    {t:'Umformen', h:'v = Δs / t'},
+    {t:'Werte einsetzen', h:'v = 600 / 40'},
+    {t:'Rechenweg', h:'v = 15 m/s = 54 km/h.'},
+    {t:'Ergebnis', h:'v = <b>15 m/s</b> (54 km/h).'}
+  ],
+  answers:[{name:'v',value:15,unit:'m/s'}]
+},
+{
+  id:'g3', topic:'gleichfoermig', source:'PDF', level:'mittel',
+  title:'Überholvorgang (PDF S. 63)',
+  angabe:'Ein Pkw fährt mit v₁ = 100 km/h; ein nachfolgender Pkw überholt mit v₂ = 120 km/h. Der erste Pkw ist 4 m, der zweite 6 m lang. Wie groß sind der Überholweg und die dafür nötige Zeit, wenn das Überholmanöver 20 m hinter dem ersten Fahrzeug beginnt und 30 m vor ihm beendet ist?',
+  given:[['v₁','100 km/h = 27,78 m/s'],['v₂','120 km/h = 33,33 m/s'],['Längen','4 m bzw. 6 m'],['Abstände','20 m davor, 30 m davor']],
+  gesucht:['Zeit t','Überholweg s'],
+  hints:['Relativgeschwindigkeit Δv = v₂ − v₁ bestimmt, wie schnell der hintere Wagen aufholt.',
+         'Der zurückzulegende Relativweg ist: 20 m + 4 m + 6 m + 30 m = 60 m.',
+         't = s/Δv, dann ist der tatsächliche Überholweg s₂ = t·v₂.'],
+  steps:[
+    {t:'Gegeben und gesucht', h:'v₁ = 27,78 m/s, v₂ = 33,33 m/s, gesucht t und Überholweg.'},
+    {t:'Relativgeschwindigkeit', h:'Δv = v₂ − v₁ = 33,33 − 27,78 = 5,56 m/s.'},
+    {t:'Relativer Weg', h:'Der hintere Wagen muss relativ zum vorderen den Weg 20 + 4 + 6 + 30 = 60 m aufholen.'},
+    {t:'Formel', h:'t = s / Δv'},
+    {t:'Werte einsetzen', h:'t = 60 / 5,56 = 10,8 s.'},
+    {t:'Überholweg & Ergebnis', h:'s = t·v₂ = 10,8 · 33,33 = <b>359,96 m</b> ≈ 360 m; t = <b>10,8 s</b>.'}
+  ],
+  answers:[{name:'Zeit t',value:10.8,unit:'s'},{name:'Überholweg s',value:359.96,unit:'m'}]
+},
+{
+  id:'g4', topic:'gleichfoermig', source:'neu', level:'leicht',
+  title:'Radfahrer (neu)',
+  angabe:'Ein Radfahrer fährt 30 Minuten lang mit einer konstanten Geschwindigkeit von 18 km/h. Welchen Weg legt er zurück?',
+  given:[['v','18 km/h = 5 m/s'],['t','30 min = 1800 s']],
+  gesucht:['Weg s'],
+  hints:['Gleichförmige Bewegung: s = v·t.','Achte auf die Einheiten (m/s und s).'],
+  steps:[
+    {t:'Gegeben und gesucht', h:'v = 5 m/s, t = 1800 s, gesucht s.'},
+    {t:'Formel', h:'s = v · t'},
+    {t:'Werte einsetzen', h:'s = 5 · 1800'},
+    {t:'Ergebnis', h:'s = 9000 m = <b>9 km</b>.'}
+  ],
+  answers:[{name:'Weg s',value:9000,unit:'m'}]
+},
+/* ===== BESCHLEUNIGT ===== */
+{
+  id:'b1', topic:'beschleunigt', source:'PDF', level:'mittel',
+  title:'Aufzug mit Seilriss (PDF S. 66)',
+  angabe:'Ein Aufzug bewegt sich mit v₀ = 5 m/s nach oben. Plötzlich reißt das Seil, und die Fangvorrichtung tritt in Tätigkeit. Sie spricht t₁ = 0,1 s nach dem Bruch an und setzt den Korb nach weiteren 0,2 s still. Gesucht: a) Größe und Richtung der Geschwindigkeit beim Ansprechen, b) Gesamtweg bis zum Stillstand.',
+  given:[['v₀','5 m/s (nach oben)'],['t₁','0,1 s'],['t₂','0,2 s'],['g','9,81 m/s²']],
+  gesucht:['Geschwindigkeit v₁ beim Ansprechen','Gesamtweg s'],
+  hints:['Nach dem Seilriss wirkt nur noch die Erdbeschleunigung nach unten.',
+         'v₁ = v₀ − g·t₁ (Vorzeichen: aufwärts positiv).',
+         'Der Weg setzt sich zusammen aus dem Weg bis zum Ansprechen und dem Weg während des Abbremsens (mittlere Geschwindigkeit v₁/2).'],
+  steps:[
+    {t:'Gegeben und gesucht', h:'v₀ = 5 m/s, t₁ = 0,1 s, t₂ = 0,2 s. Gesucht v₁ und s.'},
+    {t:'Formel für v₁', h:'Freier Fall mit Aufwärts-Anfangsgeschwindigkeit: v₁ = v₀ − g·t₁.'},
+    {t:'Werte einsetzen', h:'v₁ = 5 − 9,81·0,1 = 4,019 m/s.'},
+    {t:'Weg bis zum Ansprechen', h:'Δs₁ = v₀t₁ − ½g t₁² = 5·0,1 − ½·9,81·0,01 = 0,451 m.'},
+    {t:'Weg beim Abbremsen', h:'Δs₂ = (v₁ + 0)/2 · t₂ = 4,019/2 · 0,2 = 0,402 m.'},
+    {t:'Ergebnis', h:'v₁ = <b>4,019 m/s</b> (noch nach oben); s = 0,451 + 0,402 = <b>0,85 m</b>.'}
+  ],
+  answers:[{name:'v₁',value:4.019,unit:'m/s'},{name:'Gesamtweg s',value:0.85,unit:'m'}]
+},
+{
+  id:'b2', topic:'beschleunigt', source:'PDF', level:'schwer',
+  title:'Paketförderanlage (PDF S. 67)',
+  angabe:'Pakete werden auf 36 m waagrechter Strecke mit 1,2 m/s gleichförmig bewegt. Dann folgen sie einer 7 m langen Rutsche mit a₂ = 2 m/s². Dahinter folgt eine waagrechte Auslaufstrecke mit Verzögerung 3 m/s²; die Pakete sollen mit 0,2 m/s austreten. Gesucht: a) Geschwindigkeit am Ende der Rutsche, b) Länge der Auslaufstrecke, c) Gesamtlaufzeit.',
+  given:[['Δs₁','36 m, v₁ = 1,2 m/s'],['Δs₂','7 m, a₂ = +2 m/s²'],['a₃','−3 m/s²'],['v₃','0,2 m/s']],
+  gesucht:['v₂ am Ende der Rutsche','Δs₃ der Auslaufstrecke','Gesamtzeit t'],
+  hints:['Teile die Bewegung in drei Abschnitte mit je konstanter Beschleunigung.',
+         'Abschnitt 2: v₂² = v₁² + 2·a₂·Δs₂.',
+         'Abschnitt 3: Δs₃ = (v₂² − v₃²)/(2·|a₃|), t₃ = (v₂ − v₃)/|a₃|.'],
+  steps:[
+    {t:'Abschnitt 1 (gleichförmig)', h:'t₁ = Δs₁/v₁ = 36/1,2 = 30 s.'},
+    {t:'Abschnitt 2 (beschleunigt)', h:'v₂² = v₁² + 2a₂Δs₂ = 1,44 + 28 = 29,44 → v₂ = 5,43 m/s. t₂ = (v₂−v₁)/a₂ = 2,11 s.'},
+    {t:'Abschnitt 3 (verzögert)', h:'Δs₃ = (v₂² − v₃²)/(2·3) = (29,44 − 0,04)/6 = 4,9 m. t₃ = (5,43−0,2)/3 = 1,74 s.'},
+    {t:'Gesamtzeit', h:'t = 30 + 2,11 + 1,74 = 33,85 s.'},
+    {t:'Ergebnis', h:'a) v₂ = <b>5,43 m/s</b>, b) Δs₃ = <b>4,9 m</b>, c) t = <b>33,85 s</b>.'}
+  ],
+  answers:[{name:'v₂',value:5.43,unit:'m/s'},{name:'Δs₃',value:4.9,unit:'m'},{name:'Gesamtzeit t',value:33.85,unit:'s'}]
+},
+{
+  id:'b3', topic:'beschleunigt', source:'PDF', level:'mittel',
+  title:'Erster und zehnter Meter (PDF S. 71)',
+  angabe:'Ein Fahrzeug setzt sich mit der konstanten Beschleunigung a = 0,4 m/s² aus dem Stand in Bewegung. Welche Zeit t₁ braucht es für das Passieren des ersten Meters, in welcher Zeit t₂ durchfährt es den zehnten Meter, und wie groß ist die Geschwindigkeit v am Ende des zehnten Meters?',
+  given:[['a','0,4 m/s²'],['v₀','0 m/s']],
+  gesucht:['t₁ (1. Meter)','t₂ (10. Meter)','v nach 10 m'],
+  hints:['Ohne Anfangsgeschwindigkeit gilt s = ½a t², also t = √(2s/a).',
+         'Für den zehnten Meter: t₂ = t(10 m) − t(9 m).',
+         'Die Endgeschwindigkeit: v = a·t(10 m) = √(2a·s).'],
+  steps:[
+    {t:'Formel', h:'s = ½a t² → t = √(2s/a).'},
+    {t:'Erster Meter', h:'t₁ = √(2·1/0,4) = √5 = 2,236 s.'},
+    {t:'Zehntes Ende', h:'t(10) = √(2·10/0,4) = √50 = 7,071 s; t(9) = √45 = 6,708 s.'},
+    {t:'Zehnter Meter', h:'t₂ = 7,071 − 6,708 = 0,363 s.'},
+    {t:'Geschwindigkeit', h:'v = a·t(10) = 0,4·7,071 = 2,83 m/s.'},
+    {t:'Ergebnis', h:'t₁ = <b>2,236 s</b>, t₂ = <b>0,363 s</b>, v = <b>2,83 m/s</b>.'}
+  ],
+  answers:[{name:'t₁',value:2.236,unit:'s'},{name:'t₂',value:0.363,unit:'s'},{name:'v',value:2.83,unit:'m/s'}]
+},
+{
+  id:'b4', topic:'beschleunigt', source:'neu', level:'mittel',
+  title:'Anhalteweg (neu)',
+  angabe:'Ein Pkw fährt mit 50 km/h. Der Fahrer benötigt eine Reaktionszeit von 0,8 s; danach bremst er mit einer konstanten Verzögerung von 6 m/s². Wie groß ist der Anhalteweg?',
+  given:[['v₀','50 km/h = 13,89 m/s'],['t_R','0,8 s'],['a','−6 m/s²']],
+  gesucht:['Reaktionsweg','Bremsweg','Anhalteweg'],
+  hints:['Während der Reaktionszeit fährt das Auto gleichförmig weiter.',
+         'Reaktionsweg: s_R = v₀·t_R.',
+         'Bremsweg: s_B = v₀²/(2·|a|).'],
+  steps:[
+    {t:'Gegeben und gesucht', h:'v₀ = 13,89 m/s, t_R = 0,8 s, |a| = 6 m/s².'},
+    {t:'Reaktionsweg', h:'s_R = v₀·t_R = 13,89·0,8 = 11,11 m.'},
+    {t:'Bremsweg', h:'s_B = v₀²/(2·|a|) = 13,89²/(12) = 16,08 m.'},
+    {t:'Ergebnis', h:'Anhalteweg = 11,11 + 16,08 = <b>27,2 m</b>.'}
+  ],
+  answers:[{name:'Anhalteweg',value:27.19,unit:'m'}]
+},
+/* ===== FREIER FALL / SENKRECHTER WURF ===== */
+{
+  id:'f1', topic:'freierfall', source:'PDF', level:'leicht',
+  title:'Senkrechter Wurf nach oben (PDF S. 72)',
+  angabe:'Eine Kugel wird mit v₀ = 20 m/s senkrecht nach oben geworfen. Gesucht: Wurfhöhe h, Steigzeit t_s und Wurfzeit t_W.',
+  given:[['v₀','20 m/s'],['g','9,81 m/s²']],
+  gesucht:['Wurfhöhe h','Steigzeit t_s','Wurfzeit t_W'],
+  hints:['Im höchsten Punkt ist v = 0.','Steigzeit: t_s = v₀/g.','Höhe: h = v₀²/(2g); Wurfzeit: t_W = 2·t_s.'],
+  steps:[
+    {t:'Steigzeit', h:'t_s = v₀/g = 20/9,81 = 2,04 s.'},
+    {t:'Höhe', h:'h = v₀·t_s − ½g t_s² = 20,39 m (oder h = v₀²/(2g)).'},
+    {t:'Wurfzeit', h:'t_W = 2·t_s = 4,08 s.'},
+    {t:'Ergebnis', h:'h = <b>20,39 m</b>, t_s = <b>2,04 s</b>, t_W = <b>4,08 s</b>.'}
+  ],
+  answers:[{name:'Wurfhöhe h',value:20.39,unit:'m'},{name:'Steigzeit t_s',value:2.04,unit:'s'},{name:'Wurfzeit t_W',value:4.08,unit:'s'}]
+},
+{
+  id:'f2', topic:'freierfall', source:'PDF', level:'mittel',
+  title:'Förderkorb – Seilriss (PDF Aufgabe 6)',
+  angabe:'Das Seil eines abwärts fahrenden Förderkorbs reißt 30 m über dem Schachtgrund. Durch das Versagen der Fangvorrichtung fällt er frei weiter und schlägt 2 Sekunden nach dem Bruch auf dem Boden auf. Gesucht: a) Fahrgeschwindigkeit v₀ vor dem Seilbruch, b) Aufschlaggeschwindigkeit v.',
+  given:[['Höhe','30 m'],['t','2 s'],['g','9,81 m/s²']],
+  gesucht:['v₀','Aufschlaggeschwindigkeit v'],
+  hints:['Abwärts positiv: s = v₀·t + ½g t².','v = v₀ + g·t.'],
+  steps:[
+    {t:'Ansatz', h:'30 = v₀·2 + ½·9,81·2² = 2v₀ + 19,62.'},
+    {t:'v₀', h:'v₀ = (30 − 19,62)/2 = 5,19 m/s (abwärts).'},
+    {t:'Aufschlaggeschwindigkeit', h:'v = v₀ + g·t = 5,19 + 19,62 = 24,81 m/s.'},
+    {t:'Ergebnis', h:'v₀ = <b>5,19 m/s</b>, v = <b>24,81 m/s</b>.'}
+  ],
+  answers:[{name:'v₀',value:5.19,unit:'m/s'},{name:'Aufschlag v',value:24.81,unit:'m/s'}]
+},
+{
+  id:'f3', topic:'freierfall', source:'PDF', level:'schwer',
+  title:'Wurf vom Dach (PDF Beispiel 9)',
+  angabe:'Von einem Dach in 60 m Höhe über der Straße wird ein Körper mit v₀ nach oben geworfen. Er fällt an der Wand entlang und schlägt nach insgesamt 6 s auf der Straße auf. Gesucht: a) v₀, b) Aufschlaggeschwindigkeit, c) Gipfelhöhe über der Straße.',
+  given:[['Höhe','60 m'],['Gesamtzeit','6 s'],['g','9,81 m/s²']],
+  gesucht:['v₀','Aufschlaggeschwindigkeit v₁','Gipfelhöhe h'],
+  hints:['Setze den Startpunkt auf 60 m, aufwärts positiv; der Aufschlagpunkt ist bei −60 m.',
+         '−60 = v₀·6 − ½·9,81·36.',
+         'Gipfelhöhe = 60 m + v₀²/(2g).'],
+  steps:[
+    {t:'Ansatz', h:'−60 = 6v₀ − 176,58.'},
+    {t:'v₀', h:'v₀ = (176,58 − 60)/6 = 19,43 m/s.'},
+    {t:'Aufschlag', h:'v₁ = v₀ − g·t = 19,43 − 58,86 = −39,43 m/s → 39,43 m/s nach unten.'},
+    {t:'Gipfelhöhe', h:'h = 60 + 19,43²/(2·9,81) = 60 + 19,24 = 79,2 m.'},
+    {t:'Ergebnis', h:'v₀ = <b>19,43 m/s</b>, v₁ = <b>39,43 m/s</b>, h = <b>79,2 m</b>.'}
+  ],
+  answers:[{name:'v₀',value:19.43,unit:'m/s'},{name:'Aufschlag v₁',value:39.43,unit:'m/s'},{name:'Gipfelhöhe h',value:79.2,unit:'m'}]
+},
+{
+  id:'f4', topic:'freierfall', source:'PDF', level:'mittel',
+  title:'Induktionsspule (PDF Aufgabe 7)',
+  angabe:'Eine Spule zum Induktionshärten ist so über einem Abschreckbad aufgehängt, dass frei durchfallende Werkstücke beim Durchfallen auf Härtetemperatur gebracht werden. Die Spule hat eine Höhe von 8 cm; das Werkstück soll 0,05 s innerhalb der Spule sein. Berechne die Höhe h über der Oberkante der Spule, aus der die Werkstücke fallen gelassen werden.',
+  given:[['Spulenhöhe','8 cm = 0,08 m'],['Durchlaufzeit','0,05 s'],['g','9,81 m/s²']],
+  gesucht:['Fallhöhe h über der Spule'],
+  hints:['Die Geschwindigkeit an der Oberkante sei v_top. Innerhalb der Spule gilt 0,08 = v_top·0,05 + ½g·0,05².',
+         'Danach: h = v_top²/(2g).'],
+  steps:[
+    {t:'Ansatz', h:'0,08 = v_top·0,05 + ½·9,81·0,0025 = 0,05·v_top + 0,01226.'},
+    {t:'v_top', h:'v_top = (0,08 − 0,01226)/0,05 = 1,355 m/s.'},
+    {t:'Fallhöhe', h:'h = v_top²/(2g) = 1,355²/(19,62) = 0,0936 m.'},
+    {t:'Ergebnis', h:'h = <b>0,094 m ≈ 9,4 cm</b>.'}
+  ],
+  answers:[{name:'Höhe h',value:0.094,unit:'m'}]
+},
+{
+  id:'f5', topic:'freierfall', source:'PDF', level:'schwer',
+  title:'Zwei Steine – gleicher Aufprallzeitpunkt (PDF Beispiel 16)',
+  angabe:'Von einem Turm der Höhe h wird ein Stein mit v₁ = 10 m/s senkrecht nach oben geworfen. Ein zweiter Stein wird zur selben Zeit vom Fuß des Turmes mit v₂ = 15 m/s ebenfalls senkrecht nach oben geworfen. Beide Steine treffen gleichzeitig am Boden auf. Wie hoch ist der Turm?',
+  given:[['v₁','10 m/s (von oben)'],['v₂','15 m/s (vom Boden)'],['g','9,81 m/s²']],
+  gesucht:['Turmhöhe h'],
+  hints:['Der zweite Stein startet am Boden und kommt am Boden an → Gesamtzeit aus 0 = v₂·t − ½g t².',
+         't = 2v₂/g.',
+         'Für Stein 1: −h = v₁·t − ½g t².'],
+  steps:[
+    {t:'Zeit aus Stein 2', h:'0 = 15·t − ½·9,81·t² → t = 2·15/9,81 = 3,058 s.'},
+    {t:'Stein 1', h:'−h = 10·3,058 − ½·9,81·3,058² = 30,58 − 45,87 = −15,29 m.'},
+    {t:'Ergebnis', h:'h = <b>15,3 m</b>.'}
+  ],
+  answers:[{name:'Turmhöhe h',value:15.29,unit:'m'}]
+},
+{
+  id:'f6', topic:'freierfall', source:'PDF', level:'mittel',
+  title:'Abstand zweier fallender Kugeln (PDF Aufgabe 5)',
+  angabe:'Zwei Kugeln fallen im freien Fall nacheinander mit dem Zeitunterschied Δt = 0,5 s von einem Turm. Wie ändert sich der Abstand Δs zwischen ihnen mit der Zeit? Berechne die Zunahmegeschwindigkeit des Abstands.',
+  given:[['Δt','0,5 s'],['g','9,81 m/s²']],
+  gesucht:['Gesetz Δs(t)','Zunahmegeschwindigkeit'],
+  hints:['Kugel 1: s₁ = ½g t². Kugel 2 startet Δt später: s₂ = ½g(t−Δt)².',
+         'Δs = s₁ − s₂ = g·Δt·t − ½g Δt².',
+         'Der Abstand wächst linear; die Zunahmegeschwindigkeit ist g·Δt.'],
+  steps:[
+    {t:'Ansatz', h:'Δs = ½g[t² − (t−Δt)²] = g·Δt·t − ½g Δt².'},
+    {t:'Interpretation', h:'Der Abstand wächst linear mit der Zeit – er bleibt nicht konstant.'},
+    {t:'Zunahmegeschwindigkeit', h:'g·Δt = 9,81·0,5 = 4,905 m/s.'},
+    {t:'Ergebnis', h:'Δs(t) = g·Δt·t − ½g Δt²; Zunahmegeschwindigkeit <b>4,905 m/s</b>.'}
+  ],
+  answers:[{name:'Zunahmegeschwindigkeit',value:4.905,unit:'m/s'}]
+},
+/* ===== WURF ===== */
+{
+  id:'w1', topic:'wurf', source:'PDF', level:'leicht',
+  title:'Horizontaler Wurf (PDF S. 79/80)',
+  angabe:'Ein Stein wird von der Höhe h = 20 m mit v₀ = 10 m/s horizontal abgeschleudert. Gesucht: Wurfzeit und Wurfweite.',
+  given:[['h','20 m'],['v₀','10 m/s'],['g','9,81 m/s²']],
+  gesucht:['Wurfzeit t_w','Wurfweite s_x'],
+  hints:['Die Fallzeit hängt nur von h ab.','t_w = √(2h/g).','s_x = v₀·t_w.'],
+  steps:[
+    {t:'Fallzeit', h:'t_w = √(2h/g) = √(40/9,81) = 2,02 s.'},
+    {t:'Wurfweite', h:'s_x = v₀·t_w = 10·2,02 = 20,2 m.'},
+    {t:'Ergebnis', h:'t_w = <b>2,02 s</b>, s_x = <b>20,2 m</b>.'}
+  ],
+  answers:[{name:'Wurfzeit',value:2.02,unit:'s'},{name:'Wurfweite',value:20.2,unit:'m'}]
+},
+{
+  id:'w2', topic:'wurf', source:'PDF', level:'mittel',
+  title:'Schiefer Wurf (PDF S. 81)',
+  angabe:'Ein Körper wird unter α = 30° mit v₀ = 20 m/s schräg nach oben geworfen. Gesucht: Komponenten, maximale Höhe, Steigzeit, Wurfzeit und Wurfweite.',
+  given:[['α','30°'],['v₀','20 m/s'],['g','9,81 m/s²']],
+  gesucht:['v₀ₓ, v₀ᵧ','h_max','t_s','t_W','Wurfweite w'],
+  hints:['v₀ₓ = v₀·cosα, v₀ᵧ = v₀·sinα.','h_max = v₀ᵧ²/(2g), t_s = v₀ᵧ/g.','Wurfweite w = v₀²·sin(2α)/g.'],
+  steps:[
+    {t:'Komponenten', h:'v₀ₓ = 20·cos30° = 17,32 m/s; v₀ᵧ = 20·sin30° = 10 m/s.'},
+    {t:'Höhe', h:'h_max = 10²/(2·9,81) = 5,10 m.'},
+    {t:'Zeiten', h:'t_s = 10/9,81 = 1,02 s; t_W = 2·t_s = 2,04 s.'},
+    {t:'Wurfweite', h:'w = v₀²·sin60°/g = 400·0,866/9,81 = 35,3 m.'},
+    {t:'Ergebnis', h:'h_max = <b>5,10 m</b>, t_W = <b>2,04 s</b>, w = <b>35,3 m</b>.'}
+  ],
+  answers:[{name:'h_max',value:5.10,unit:'m'},{name:'Wurfzeit t_W',value:2.04,unit:'s'},{name:'Wurfweite w',value:35.3,unit:'m'}]
+},
+{
+  id:'w3', topic:'wurf', source:'PDF', level:'schwer',
+  title:'Schräger Wurf mit Rücksprung (PDF Beispiel 12)',
+  angabe:'Eine Kugel wird von einem Turm (h = 50 m) unter α = 30° gegen die Horizontale mit v₀ = 20 m/s schräg nach unten geworfen und trifft im Punkt B auf den Boden. Dort prallt sie mit 80 % ihrer Auftreffgeschwindigkeit zurück und trifft in 90 m Entfernung auf eine vertikale Wand. Gesucht: a) gesamte Wurfzeit, b) Auftreffpunkt an der Wand P(90/y), c) Auftreffwinkel β.',
+  given:[['h','50 m'],['α','30° (nach unten)'],['v₀','20 m/s'],['Rücksprung','80 %'],['s','90 m']],
+  gesucht:['Wurfzeit bis B','Höhe y an der Wand','Auftreffwinkel β'],
+  hints:['Zerlege v₀: v₀ₓ = v₀cosα, v₀ᵧ = −v₀sinα (nach unten).',
+         'Boden: −50 = v₀ᵧ·t − ½g t².',
+         'Nach dem Sprung: v′ₓ = 0,8·v₀ₓ, v′ᵧ = 0,8·|v_By| (nach oben).'],
+  steps:[
+    {t:'Komponenten', h:'v₀ₓ = 17,32 m/s, v₀ᵧ = −10 m/s.'},
+    {t:'Wurfzeit bis B', h:'−50 = −10t − 4,905t² → t_B = 2,33 s.'},
+    {t:'Auftreffpunkt B', h:'v_By = −10 − 9,81·2,33 = −32,86 m/s; s_Bx = 17,32·2,33 = 40,36 m.'},
+    {t:'Nach dem Sprung', h:'v′ₓ = 13,86 m/s, v′ᵧ = 26,29 m/s; Restweg 90 − 40,36 = 49,64 m → t_p = 3,58 s.'},
+    {t:'Höhe an der Wand', h:'y = 26,29·3,58 − 4,905·3,58² = 31,3 m.'},
+    {t:'Auftreffwinkel', h:'v_y = 26,29 − 9,81·3,58 = −8,83 m/s → β = arctan(8,83/13,86) = 32,5°.'},
+    {t:'Ergebnis', h:'t_B = <b>2,33 s</b>, y = <b>31,3 m</b>, β = <b>32,5°</b>.'}
+  ],
+  answers:[{name:'Wurfzeit bis B',value:2.33,unit:'s'},{name:'Höhe y',value:31.3,unit:'m'},{name:'Winkel β',value:32.5,unit:'°'}]
+},
+{
+  id:'w4', topic:'wurf', source:'PDF', level:'schwer',
+  title:'Schiefer Wurf gegen geneigte Wand (PDF Aufgabe 2)',
+  angabe:'Eine Kugel wird unter α = 60° mit v₀ = 60 m/s schräg nach oben geschleudert. In 200 m Entfernung steht eine um β = 45° geneigte Wand (Wandgerade y = x − 200). An welchem Punkt trifft die Kugel die Wand, und mit welcher Geschwindigkeit?',
+  given:[['α','60°'],['v₀','60 m/s'],['Wand','s = 200 m, β = 45°'],['g','9,81 m/s²']],
+  gesucht:['Auftreffpunkt P','Geschwindigkeit v'],
+  hints:['Bahnkurve: y = x·tanα − g·x²/(2v₀²cos²α).',
+         'Setze y = x − 200 (Wandgerade) und löse die quadratische Gleichung.',
+         'v = √(v₀ₓ² + v_y²).'],
+  steps:[
+    {t:'Komponenten', h:'v₀ₓ = 60·cos60° = 30 m/s; v₀ᵧ = 60·sin60° = 51,96 m/s.'},
+    {t:'Bahnkurve', h:'y = 51,96·(x/30) − 4,905·(x/30)² = 1,732x − 0,00545x².'},
+    {t:'Schnitt mit der Wand', h:'1,732x − 0,00545x² = x − 200 → x ≈ 270 m, y ≈ 70 m.'},
+    {t:'Geschwindigkeit', h:'t = x/30 = 9,0 s; v_y = 51,96 − 9,81·9,0 = −36,3 m/s; v = √(30²+36,3²) = 47,1 m/s.'},
+    {t:'Ergebnis', h:'P ≈ <b>(270 m; 70 m)</b>, v ≈ <b>47 m/s</b> (≈ 50° unter der Horizontalen).'}
+  ],
+  answers:[{name:'x-Koordinate',value:270,unit:'m'},{name:'y-Koordinate',value:70,unit:'m'},{name:'Geschwindigkeit v',value:47.1,unit:'m/s'}]
+},
+{
+  id:'w5', topic:'wurf', source:'neu', level:'mittel',
+  title:'Wurfweite bei 45° (neu)',
+  angabe:'Ein Ball wird unter 45° mit v₀ = 30 m/s abgeworfen. Berechne maximale Höhe, Wurfzeit und Wurfweite.',
+  given:[['α','45°'],['v₀','30 m/s'],['g','9,81 m/s²']],
+  gesucht:['h_max','t_W','Wurfweite w'],
+  hints:['sin45° = cos45° = 0,7071.','h_max = v₀ᵧ²/(2g).','w = v₀²·sin(2α)/g mit sin90° = 1.'],
+  steps:[
+    {t:'Komponenten', h:'v₀ₓ = v₀ᵧ = 30·0,7071 = 21,21 m/s.'},
+    {t:'Höhe & Zeit', h:'h_max = 21,21²/(19,62) = 22,9 m; t_W = 2·21,21/9,81 = 4,32 s.'},
+    {t:'Wurfweite', h:'w = 30²·1/9,81 = 91,7 m.'},
+    {t:'Ergebnis', h:'h_max = <b>22,9 m</b>, t_W = <b>4,32 s</b>, w = <b>91,7 m</b>.'}
+  ],
+  answers:[{name:'h_max',value:22.9,unit:'m'},{name:'Wurfweite w',value:91.7,unit:'m'}]
+},
+/* ===== ZWEIDIM ===== */
+{
+  id:'z2', topic:'gleichfoermig', source:'neu', level:'schwer',
+  title:'Ebene Bewegung mit vx, vy (PDF S. 78, neu berechnet)',
+  angabe:'Die Bewegung eines Punktes wird durch v_x = 10t + 5 m/s und v_y = 3t² − 10 m/s beschrieben. Zur Zeit t = 0 ist x = 5 m und y = −10 m. Gesucht: Ort, Geschwindigkeit und Beschleunigung nach t = 3 s.',
+  given:[['v_x','10t + 5'],['v_y','3t² − 10'],['Start','x₀ = 5 m, y₀ = −10 m'],['t','3 s']],
+  gesucht:['x(3), y(3)','v(3)','a(3)'],
+  hints:['x(t) = x₀ + ∫v_x dt; y(t) = y₀ + ∫v_y dt.','a_x = dv_x/dt; a_y = dv_y/dt.',
+         'v = √(v_x² + v_y²).'],
+  steps:[
+    {t:'Ort', h:'x(3) = 5 + 5·9 + 5·3 = 65 m; y(3) = −10 + 27 − 30 = −13 m.'},
+    {t:'Geschwindigkeit', h:'v_x = 35 m/s, v_y = 17 m/s → v = √(35²+17²) = 38,9 m/s.'},
+    {t:'Beschleunigung', h:'a_x = 10 m/s², a_y = 6t = 18 m/s² → a = 20,6 m/s².'},
+    {t:'Ergebnis', h:'Ort (65 | −13) m, v = <b>38,9 m/s</b>, a = <b>20,6 m/s²</b>.'}
+  ],
+  answers:[{name:'Geschwindigkeit v',value:38.9,unit:'m/s'},{name:'Beschleunigung a',value:20.6,unit:'m/s²'}]
+},
+{
+  id:'z3', topic:'gleichfoermig', source:'PDF', level:'mittel',
+  title:'Pkw-Beschleunigung (PDF Aufgabe 12)',
+  angabe:'Ein Pkw erreicht aus dem Stand in t = 20 s die Geschwindigkeit v = 90 km/h. Gesucht: a) mittlere Beschleunigung a_m, b) Weg s während der Beschleunigungsphase.',
+  given:[['v','90 km/h = 25 m/s'],['t','20 s'],['v₀','0']],
+  gesucht:['a_m','Weg s'],
+  hints:['a_m = Δv/Δt.','s = ½a t² (aus dem Stand).'],
+  steps:[
+    {t:'Beschleunigung', h:'a_m = 25/20 = 1,25 m/s².'},
+    {t:'Weg', h:'s = ½·1,25·400 = 250 m.'},
+    {t:'Ergebnis', h:'a_m = <b>1,25 m/s²</b>, s = <b>250 m</b>.'}
+  ],
+  answers:[{name:'a_m',value:1.25,unit:'m/s²'},{name:'Weg s',value:250,unit:'m'}]
+},
+];
+
+/* ---------- Formelsammlung ---------- */
+const FORMULAS = [
+  {cat:'Grundgrößen', name:'Mittlere Geschwindigkeit', html:'v<sub>m</sub> = Δs/Δt = (s₂ − s₁)/(t₂ − t₁)',
+   sym:'v_m mittlere Geschwindigkeit; Δs Wegänderung; Δt Zeitdifferenz', unit:'m/s', use:'Gleichförmige und beliebige Bewegungen, wenn über einen Zeitraum gemittelt wird.', forms:'Δs = v_m·Δt'},
+  {cat:'Grundgrößen', name:'Momentangeschwindigkeit', html:'v = lim<sub>Δt→0</sub> Δs/Δt = ds/dt = ṡ',
+   sym:'v Momentangeschwindigkeit; s Weg; t Zeit', unit:'m/s', use:'Wenn die Geschwindigkeit zu einem bestimmten Zeitpunkt gefragt ist.', forms:'ds = v·dt'},
+  {cat:'Grundgrößen', name:'Mittlere Beschleunigung', html:'a<sub>m</sub> = Δv/Δt = (v₂ − v₁)/(t₂ − t₁)',
+   sym:'a_m mittlere Beschleunigung; Δv Geschwindigkeitsänderung', unit:'m/s²', use:'Mittlere Änderung der Geschwindigkeit.', forms:'Δv = a_m·Δt'},
+  {cat:'Grundgrößen', name:'Momentanbeschleunigung', html:'a = lim<sub>Δt→0</sub> Δv/Δt = dv/dt = v̇ = s̈ = d²s/dt²',
+   sym:'a Momentanbeschleunigung', unit:'m/s²', use:'Wenn die Beschleunigung zu einem Zeitpunkt gefragt ist.', forms:'dv = a·dt'},
+  {cat:'Gleichförmige Bewegung', name:'Weg-Zeit-Gesetz', html:'s = s₀ + v · t',
+   sym:'s Ort; s₀ Anfangsort; v konstante Geschwindigkeit; t Zeit', unit:'m', use:'v = const, a = 0.', forms:'v = (s − s₀)/t; t = (s − s₀)/v'},
+  {cat:'Gleichförmige Bewegung', name:'Weg bei gleichförmiger Bewegung', html:'Δs = v · t',
+   sym:'Δs zurückgelegter Weg', unit:'m', use:'Ohne Berücksichtigung des Anfangsortes.', forms:'v = Δs/t; t = Δs/v'},
+  {cat:'Beschleunigte Bewegung', name:'Geschwindigkeit-Zeit-Gesetz', html:'v = v₀ + a · t',
+   sym:'v₀ Anfangsgeschwindigkeit; a konstante Beschleunigung', unit:'m/s', use:'a = const (beschleunigt oder verzögert).', forms:'a = (v − v₀)/t; t = (v − v₀)/a; v₀ = v − a·t'},
+  {cat:'Beschleunigte Bewegung', name:'Ort-Zeit-Gesetz', html:'s = s₀ + v₀ · t + ½ a · t²',
+   sym:'s₀ Anfangsort; v₀ Anfangsgeschwindigkeit', unit:'m', use:'a = const.', forms:'a = 2(s − s₀ − v₀t)/t²'},
+  {cat:'Beschleunigte Bewegung', name:'Weg ohne Anfangsgeschwindigkeit', html:'s = ½ a · t²',
+   sym:'v₀ = 0, s₀ = 0', unit:'m', use:'Anfahren aus dem Stand, freier Fall.', forms:'a = 2s/t²; t = √(2s/a)'},
+  {cat:'Beschleunigte Bewegung', name:'Geschwindigkeit-Weg-Beziehung', html:'v² = v₀² + 2 a · s',
+   sym:'v Endgeschwindigkeit; s Weg', unit:'m²/s²', use:'Wenn die Zeit nicht bekannt ist.', forms:'s = (v² − v₀²)/(2a); v = √(v₀² + 2as)'},
+  {cat:'Beschleunigte Bewegung', name:'Weg über mittlere Geschwindigkeit', html:'s = v₀·t + ((v − v₀)/2)·t',
+   sym:'v End-, v₀ Anfangsgeschwindigkeit', unit:'m', use:'Aus der Fläche des v-t-Diagramms.', forms:'–'},
+  {cat:'Freier Fall', name:'Fallgeschwindigkeit', html:'v = g · t',
+   sym:'g = 9,81 m/s² Erdbeschleunigung', unit:'m/s', use:'Freier Fall aus der Ruhe.', forms:'t = v/g'},
+  {cat:'Freier Fall', name:'Fallhöhe', html:'h = ½ g · t²',
+   sym:'h Fallhöhe', unit:'m', use:'Freier Fall aus der Ruhe.', forms:'t = √(2h/g)'},
+  {cat:'Freier Fall', name:'Geschwindigkeit aus der Fallhöhe', html:'v = √(2 g h)',
+   sym:'h Fallhöhe', unit:'m/s', use:'Wenn die Fallzeit nicht bekannt ist.', forms:'h = v²/(2g)'},
+  {cat:'Senkrechter Wurf', name:'Geschwindigkeit (nach oben)', html:'v = v₀ − g · t',
+   sym:'v₀ Abwurfgeschwindigkeit nach oben', unit:'m/s', use:'Senkrechter Wurf nach oben.', forms:'t = (v₀ − v)/g'},
+  {cat:'Senkrechter Wurf', name:'Wurfhöhe', html:'h = v₀ · t − ½ g · t²',
+   sym:'h Höhe über dem Abwurfpunkt', unit:'m', use:'Senkrechter Wurf nach oben.', forms:'–'},
+  {cat:'Senkrechter Wurf', name:'Steigzeit', html:'t_s = v₀ / g',
+   sym:'t_s Zeit bis zum höchsten Punkt (v = 0)', unit:'s', use:'Senkrechter Wurf nach oben.', forms:'v₀ = g·t_s'},
+  {cat:'Senkrechter Wurf', name:'Maximale Wurfhöhe', html:'h_max = v₀² / (2 g)',
+   sym:'h_max größte Höhe', unit:'m', use:'Senkrechter Wurf nach oben.', forms:'v₀ = √(2 g h_max)'},
+  {cat:'Senkrechter Wurf', name:'Wurfzeit', html:'t_W = 2 t_s = 2 v₀ / g',
+   sym:'t_W Gesamtzeit bis zur Rückkehr', unit:'s', use:'Rückkehr auf die Abwurfhöhe.', forms:'–'},
+  {cat:'Waagrechter Wurf', name:'Wegkomponenten', html:'s_x = v₀·t &nbsp;·&nbsp; s_y = ½ g t²',
+   sym:'s_x horizontal, s_y vertikal', unit:'m', use:'Waagrechter Wurf aus der Höhe.', forms:'–'},
+  {cat:'Waagrechter Wurf', name:'Fallzeit', html:'t_w = √(2h/g)',
+   sym:'h Abwurfhöhe', unit:'s', use:'Unabhängig von v₀.', forms:'h = ½ g t_w²'},
+  {cat:'Waagrechter Wurf', name:'Wurfweite', html:'s_x = v₀ √(2h/g)',
+   sym:'s_x horizontale Wurfweite', unit:'m', use:'Waagrechter Wurf.', forms:'v₀ = s_x/√(2h/g)'},
+  {cat:'Schiefer Wurf', name:'Komponenten', html:'v₀ₓ = v₀ cos α &nbsp;·&nbsp; v₀ᵧ = v₀ sin α',
+   sym:'α Abwurfwinkel', unit:'m/s', use:'Zerlegung der Anfangsgeschwindigkeit.', forms:'v₀ = √(v₀ₓ² + v₀ᵧ²)'},
+  {cat:'Schiefer Wurf', name:'Geschwindigkeit', html:'vₓ = v₀ cos α &nbsp;·&nbsp; v_y = v₀ sin α − g t',
+   sym:'v_x konstant, v_y veränderlich', unit:'m/s', use:'Schiefer Wurf.', forms:'–'},
+  {cat:'Schiefer Wurf', name:'Weg', html:'s_x = v₀ cos α · t &nbsp;·&nbsp; s_y = v₀ sin α · t − ½ g t²',
+   sym:'Bahngleichung in Komponenten', unit:'m', use:'Schiefer Wurf.', forms:'–'},
+  {cat:'Schiefer Wurf', name:'Steig-/Wurfzeit', html:'t_s = v₀ sin α / g &nbsp;·&nbsp; t_W = 2 t_s',
+   sym:'t_s Steigzeit; t_W Wurfzeit', unit:'s', use:'Ebene Abwurf- und Auftreffhöhe.', forms:'–'},
+  {cat:'Schiefer Wurf', name:'Maximale Höhe', html:'h_max = v₀² sin²α / (2 g)',
+   sym:'h_max größte Höhe', unit:'m', use:'Schiefer Wurf.', forms:'–'},
+  {cat:'Schiefer Wurf', name:'Wurfweite', html:'w = v₀² sin(2α) / g',
+   sym:'w Wurfweite', unit:'m', use:'Ebene Abwurf- und Auftreffhöhe; max. bei α = 45°.', forms:'–'}
+];
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+  {q:'Was beschreibt die Kinematik?', o:['Kräfte als Ursache der Bewegung','Bewegungen in Zeit und Raum ohne Ursache','Energieformen','Nur Kreisbewegungen'], a:1,
+   e:'Die Kinematik ist ein Teilgebiet der Dynamik und beschreibt Bewegungen in Zeit und Raum, ohne nach Ursache/Wirkung zu fragen.'},
+  {q:'Was gilt für eine gleichförmige Bewegung?', o:['a = const ≠ 0','v = const, a = 0','s = const','a wächst linear'], a:1,
+   e:'Gleichförmig heißt konstante Geschwindigkeit; daraus folgt a = dv/dt = 0.'},
+  {q:'Wie lautet das Weg-Zeit-Gesetz der gleichförmigen Bewegung?', o:['s = ½ a t²','s = s₀ + v t','v = v₀ + a t','s = v₀t − ½gt²'], a:1,
+   e:'s = s₀ + v·t, wobei s₀ der Weg vor der Zeitzählung ist.'},
+  {q:'Welche Einheit hat die Beschleunigung?', o:['m/s','m/s²','m²/s','1/s'], a:1,
+   e:'Die Beschleunigung ist die Änderung der Geschwindigkeit pro Zeit, also m/s².'},
+  {q:'Wie groß ist g (Erdbeschleunigung)?', o:['9,81 m/s','9,81 m/s²','9,81 m','3,14 m/s²'], a:1,
+   e:'g = 9,81 m/s².'},
+  {q:'Bei welchem Winkel ist die Wurfweite beim schiefen Wurf maximal?', o:['30°','45°','60°','90°'], a:1,
+   e:'Die Wurfweite w = v₀²·sin(2α)/g ist bei α = 45° maximal.'},
+  {q:'Was gilt beim freien Fall?', o:['Die Fallzeit hängt von der Masse ab','v = g·t und h = ½g t²','a ist konstant 0','Die Geschwindigkeit ist konstant'], a:1,
+   e:'Der freie Fall ist eine gleichmäßig beschleunigte Bewegung mit a = g; die Masse spielt (ohne Luftwiderstand) keine Rolle.'},
+  {q:'Wodurch erhält man die Momentangeschwindigkeit aus dem Weg?', o:['Durch Integration','Durch die erste Ableitung ds/dt','Durch Mittelwertbildung','Durch Multiplikation mit t'], a:1,
+   e:'v = lim Δs/Δt = ds/dt (erste Ableitung des Weges nach der Zeit).'},
+  {q:'Wie viele Freiheitsgrade hat ein Punkt in der Ebene?', o:['1','2','3','6'], a:1,
+   e:'In der Ebene hat ein Punkt zwei Freiheitsgrade; im Raum drei, auf einer Raumkurve einen.'},
+  {q:'Was beschreibt die Fläche unter dem v-t-Diagramm?', o:['die Beschleunigung','den zurückgelegten Weg','die Geschwindigkeitsänderung','die Zeit'], a:1,
+   e:'Die Fläche unter dem v-t-Diagramm entspricht dem Weg Δs; die Fläche unter dem a-t-Diagramm der Geschwindigkeitsänderung Δv.'}
+];
+</script>
+<script>
+/* ============================================================
+   APP-LOGIK
+   ============================================================ */
+(function(){
+'use strict';
+
+/* ---------- Hilfsfunktionen ---------- */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const fmt = (x,d=2)=> (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* Formelzeichen wie v_m, t_s, h_max als echte Indizes setzen */
+const sub = s => String(s).replace(/([A-Za-zÄÖÜäöüΔφωα])_([A-Za-z0-9]+)/g,'$1<sub>$2</sub>');
+
+/* ---------- LocalStorage ---------- */
+const LS_KEY='kinematik_lernprogramm_v1';let state = load();
+function load(){
+  try{ const r=localStorage.getItem(LS_KEY); if(r) return JSON.parse(r); }catch(e){}
+  return {chapters:{}, exercises:{}, quiz:{}, formulas:{fav:{}}, views:{}};
+}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+
+/* ============================================================
+   TEXT-AUFBEREITUNG
+   Unterstriche in Formelzeichen (t_s, h_max, s_R ...) werden in den
+   Feldern, die als HTML ausgegeben werden, zu echten Indizes.
+   ============================================================ */
+(function fixSubs(){
+  const map=s=>typeof s==='string'?sub(s):s;
+  FORMULAS.forEach(f=>{ f.html=map(f.html); f.sym=map(f.sym); f.forms=map(f.forms); f.use=map(f.use); });
+  EXERCISES.forEach(e=>{
+    e.angabe=map(e.angabe);
+    e.given=e.given.map(g=>[map(g[0]),map(g[1])]);
+    e.gesucht=e.gesucht.map(map);
+    e.hints=e.hints.map(map);
+    e.steps=e.steps.map(st=>({t:map(st.t),h:map(st.h)}));
+  });
+})();
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+const VIEW_TITLES={start:'Start',pdfanalyse:'PDF-Analyse',grundlagen:'4.1 Grundlagen',punkt:'4.2 Kinematik des Punktes',
+ gleichfoermig:'Gleichförmige Bewegung',beschleunigt:'Gleichmäßig beschleunigte Bewegung',freierfall:'Freier Fall & senkrechter Wurf',
+ zweidim:'Ebene Bewegung',wurf:'Wurf',rechnen:'Rechenmodus',formeln:'Formelsammlung',
+ animation:'Animationen',diagramme:'Diagramme',quiz:'Wissensquiz',fortschritt:'Lernfortschritt'};
+
+function show(view){
+  $$('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+view));
+  $$('#nav a').forEach(a=>a.classList.toggle('active', a.dataset.view===view));
+  $('#crumb').innerHTML = 'Kinematik · <b>'+(VIEW_TITLES[view]||view)+'</b>';
+  state.views[view]=(state.views[view]||0)+1; save();
+  window.scrollTo({top:0,behavior:'smooth'});
+  $('#sidebar').classList.remove('open');
+  if(view==='diagramme') drawDiagrams();
+  if(view==='animation') requestAnimationFrame(()=>{resizeAll();});
+  if(view==='fortschritt') renderProgress();
+}
+document.addEventListener('click',e=>{
+  const a=e.target.closest('#nav a'); if(a){ show(a.dataset.view); return; }
+  const g=e.target.closest('[data-goto]'); if(g){ show(g.dataset.goto); return; }
+  const p=e.target.closest('[data-play]'); if(p){ togglePlay(p.dataset.play); return; }
+  const r=e.target.closest('[data-reset]'); if(r){ resetAnim(r.dataset.reset); return; }
+});
+$('#hambBtn').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+
+/* ============================================================
+   LERN­FORTSCHRITT – Kapitel
+   ============================================================ */
+function renderChapterDone(){
+  $$('.chapterdone').forEach(box=>{
+    const id=box.dataset.chapter;
+    box.innerHTML='';
+    const btn=document.createElement('button');
+    btn.className='btn small '+(state.chapters[id]?'acc':'ghost');
+    btn.textContent=state.chapters[id]?'✓ Kapitel erledigt':'Kapitel als erledigt markieren';
+    btn.addEventListener('click',()=>{ state.chapters[id]=!state.chapters[id]; save(); renderChapterDone(); updateProgress(); });
+    box.appendChild(btn);
+  });
+}
+function updateProgress(){
+  const total=CHAPTERS.length;
+  const done=CHAPTERS.filter(c=>state.chapters[c.id]).length;
+  const exDone=Object.values(state.exercises).filter(v=>v&&v.ok).length;
+  const quizDone=Object.values(state.quiz).filter(v=>v).length;
+  const pct=Math.round((done/total)*70 + Math.min(exDone,25)/25*20 + Math.min(quizDone,QUIZ.length)/QUIZ.length*10);
+  $('#progPct').textContent=pct+' %';
+  $('#progBar').style.width=pct+'%';
+  $('#progTxt').textContent=done+' von '+total+' Kapiteln erledigt';
+  const fs=$('#fsChapters'); if(fs){ fs.textContent=done+'/'+total; $('#fsEx').textContent=exDone; $('#fsQuiz').textContent=quizDone; $('#fsPct').textContent=pct+' %'; }
+}
+
+/* ============================================================
+   PDF-TABELLE FILTER
+   ============================================================ */
+(function(){
+  const inp=$('#pdfFilter'); if(!inp) return;
+  inp.addEventListener('input',()=>{
+    const q=inp.value.toLowerCase();
+    let n=0;
+    $$('#pdfTable tbody tr').forEach(tr=>{
+      const hit=tr.textContent.toLowerCase().includes(q);
+      tr.style.display=hit?'':'none'; if(hit)n++;
+    });
+    $('#pdfCount').textContent=n+' Seiten';
+  });
+})();
+
+/* ============================================================
+   RECHENMODUS
+   ============================================================ */
+function initTopicSelect(){
+  const sel=$('#exTopic');
+  sel.innerHTML='<option value="">alle Themen</option>'+Object.entries(TOPICS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+}
+function normUnit(u){
+  return (u||'').toLowerCase().replace(/\s+/g,'').replace(/²/g,'^2').replace(/·/g,'').replace(/\*/g,'').replace(/,/g,'.');
+}
+/* Zahl aus einer Eingabe lesen – deutsches Format (Komma = Dezimal,
+   Punkt = Tausendertrenner, wenn es wie 6.030 aussieht) und englisches
+   Format (Punkt = Dezimal) werden beide akzeptiert. */
+function parseInput(s){
+  const raw=(s||'').trim();
+  const m=raw.match(/^[-+]?\s*\d[\d.,]*/);
+  if(!m) return {num:NaN, alt:NaN, unit:raw};
+  const token=m[0].replace(/\s+/g,'');
+  let num;
+  const hasComma=token.indexOf(',')>=0, hasDot=token.indexOf('.')>=0;
+  if(hasComma && hasDot){
+    num=parseFloat(token.replace(/\./g,'').replace(',','.'));   // 1.234,5
+  }else if(hasComma){
+    num=parseFloat(token.replace(',','.'));                     // 149,5
+  }else{
+    num=parseFloat(token);                                      // 2.236 = 2,236
+  }
+  // Alternativdeutung: 6.030 -> 6030 (Tausendertrenner)
+  let alt=NaN;
+  if(!hasComma && /^-?\d{1,3}(\.\d{3})+$/.test(token)) alt=parseFloat(token.replace(/\./g,''));
+  return {num, alt, unit:raw.slice(m[0].length).trim()};
+}
+function renderExercises(){
+  hintIdx={};
+  const topic=$('#exTopic').value, level=$('#exLevel').value, src=$('#exSource').value;
+  const list=EXERCISES.filter(e=>(!topic||e.topic===topic)&&(!level||e.level===level)&&(!src||e.source===src));
+  $('#exCount').textContent=list.length+' Aufgaben';
+  const solved=list.filter(e=>state.exercises[e.id]&&state.exercises[e.id].ok).length;
+  $('#exStats').innerHTML=`<div class="k"><b>${list.length}</b><span>angezeigte Aufgaben</span></div>
+    <div class="k"><b>${solved}</b><span>davon richtig</span></div>
+    <div class="k"><b>${EXERCISES.filter(e=>e.source==='PDF').length}</b><span>aus der PDF</span></div>
+    <div class="k"><b>${EXERCISES.filter(e=>e.source==='neu').length}</b><span>neu erstellt</span></div>`;
+  const wrap=$('#exList'); wrap.innerHTML='';
+  if(!list.length){ wrap.innerHTML='<div class="note">Keine Aufgaben für diese Auswahl.</div>'; return; }
+  list.forEach(ex=>wrap.appendChild(exerciseCard(ex)));
+}
+function exerciseCard(ex){
+  const card=document.createElement('div'); card.className='card'; card.id='ex-'+ex.id;
+  const lvl={leicht:'leicht',mittel:'mittel',schwer:'schwer'}[ex.level];
+  card.innerHTML=`
+    <div class="exhead">
+      <span class="tag ${ex.source==='PDF'?'pdf':'neu'}">${ex.source==='PDF'?'aus der PDF':'neu erstellt'}</span>
+      <span class="tag ${lvl}">${ex.level}</span>
+      <span class="pill">${TOPICS[ex.topic]||''}</span>
+      <span class="spacer" style="flex:1"></span>
+      <span class="pill ${state.exercises[ex.id]&&state.exercises[ex.id].ok?'ok':''}" id="badge-${ex.id}">${state.exercises[ex.id]&&state.exercises[ex.id].ok?'✓ gelöst':'offen'}</span>
+    </div>
+    <h3>${sub(esc(ex.title))}</h3>
+    <div class="angabe">${ex.angabe}</div>
+    <div class="grid c2">
+      <div><h4>Gegeben</h4><div class="given-grid">${ex.given.map(g=>`<div class="g"><b>${g[0]}</b>${g[1]}</div>`).join('')}</div></div>
+      <div><h4>Gesucht</h4><ul class="clean">${ex.gesucht.map(g=>`<li>${g}</li>`).join('')}</ul></div>
+    </div>
+    <div class="hr"></div>
+    <h4>Deine Berechnung</h4>
+    <div id="ans-${ex.id}">
+      ${ex.answers.map((a,i)=>`<div class="answer-row" style="margin:6px 0">
+        <label style="min-width:190px;font-weight:600">${sub(esc(a.name))}:</label>
+        <input type="text" data-ex="${ex.id}" data-idx="${i}" placeholder="Wert ${a.unit?'('+a.unit+')':''}">
+        <span class="unit">${a.unit||''}</span></div>`).join('')}
+      ${ex.answers.length?'':'<div class="note warn">Diese Aufgabe ist eine Herleitung/Formelaufgabe – hier gibt es kein Zahlen-Ergebnis. Nutze die Schritt-für-Schritt-Lösung.</div>'}
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn acc" data-check="${ex.id}">✓ Ergebnis prüfen</button>
+      <button class="btn ghost small" data-hint="${ex.id}">💡 Hilfe</button>
+      <button class="btn ghost small" data-showsteps="${ex.id}">Schritt für Schritt</button>
+      <button class="btn ghost small" data-solution="${ex.id}">Musterlösung</button>
+    </div>
+    <div class="hints" id="hints-${ex.id}"></div>
+    <div id="res-${ex.id}"></div>
+    <div class="steps" id="steps-${ex.id}" style="display:none"></div>`;
+  // events
+  card.querySelector('[data-check]').addEventListener('click',()=>checkExercise(ex));
+  card.querySelector('[data-hint]').addEventListener('click',()=>hintExercise(ex));
+  card.querySelector('[data-showsteps]').addEventListener('click',()=>{ const s=$('#steps-'+ex.id); if(s.style.display==='none'){ buildSteps(ex); s.style.display=''; } else s.style.display='none'; });
+  card.querySelector('[data-solution]').addEventListener('click',()=>{ buildSteps(ex,true); $('#steps-'+ex.id).style.display=''; });
+  return card;
+}
+function checkExercise(ex){
+  const inputs=$$('input[data-ex="'+ex.id+'"]');
+  if(!ex.answers.length){ $('#res-'+ex.id).innerHTML='<div class="result-box tip">Formelaufgabe – siehe Schritt-für-Schritt-Lösung.</div>'; return; }
+  let allOk=true, anyEmpty=false, unitWarn=false;
+  ex.answers.forEach((a,i)=>{
+    const inp=inputs[i]; const p=parseInput(inp.value);
+    if(inp.value.trim()===''){ anyEmpty=true; allOk=false; return; }
+    const tol=Math.abs(a.value)*(a.tol||0.02)+0.005;
+    const ok=Math.abs(p.num-a.value)<=tol || (!isNaN(p.alt) && Math.abs(p.alt-a.value)<=tol);
+    if(!ok) allOk=false;
+    const uExp=normUnit(a.unit), uGot=normUnit(p.unit);
+    if(a.unit && uGot && uExp && uGot!==uExp) unitWarn=true;
+    inp.style.borderColor=ok?'#8fd7b6':'#eaa9ae';
+  });
+  const box=$('#res-'+ex.id);
+  if(anyEmpty){ box.className='result-box tip'; box.innerHTML='Bitte zuerst alle Felder ausfüllen.'; return; }
+  if(allOk){
+    box.className='result-box ok';
+    box.innerHTML='✓ Richtig! Alle Ergebnisse stimmen'+(unitWarn?' (Einheiten bitte noch prüfen).':'.')+' Sehr gut!';
+    state.exercises[ex.id]={ok:true}; save(); updateProgress();
+    $('#badge-'+ex.id).className='pill ok'; $('#badge-'+ex.id).textContent='✓ gelöst';
+  } else {
+    box.className='result-box bad';
+    let msg='✗ Noch nicht korrekt. ';
+    msg+= unitWarn?'Achte auf die Einheiten und Vorzeichen. ':'';
+    msg+= hintFor(ex);
+    box.innerHTML=msg;
+    state.exercises[ex.id]={ok:false}; save();
+  }
+}
+function hintFor(ex){
+  if(ex.topic==='gleichfoermig') return 'Prüfe, ob du wirklich s = v·t bzw. t = s/v verwendet hast und alle Werte in m und s vorliegen.';
+  if(ex.topic==='beschleunigt') return 'Trenne die Abschnitte und verwende v = v₀+a·t sowie s = v₀t+½at².';
+  if(ex.topic==='freierfall') return 'Achte auf das Vorzeichen der Beschleunigung (−g nach oben positiv gerechnet).';
+  if(ex.topic==='wurf') return 'Zerlege in x- und y-Richtung; in x gilt v = const, in y wirkt g.';
+  return 'Vergleiche deinen Rechenweg mit der Schritt-für-Schritt-Lösung.';
+}
+let hintIdx={};
+function hintExercise(ex){
+  hintIdx[ex.id]=(hintIdx[ex.id]||0);
+  const box=$('#hints-'+ex.id);
+  const labels=['Hilfe 1 – Hinweis zur Aufgabenstellung','Hilfe 2 – Formel und Lösungsansatz','Hilfe 3 – nächster Rechenschritt'];
+  const idx=hintIdx[ex.id];
+  if(idx>=ex.hints.length){ box.innerHTML+='<div class="hint">Alle Hilfen wurden angezeigt. Nutze nun „Schritt für Schritt" oder die Musterlösung.</div>'; return; }
+  box.innerHTML+=`<div class="hint"><b>${labels[idx]}:</b> ${ex.hints[idx]}</div>`;
+  hintIdx[ex.id]=idx+1;
+}
+function buildSteps(ex, full){
+  const box=$('#steps-'+ex.id);
+  if(box.dataset.built) return;
+  box.innerHTML=ex.steps.map((s,i)=>`<details class="step" ${full?'open':''}><summary><span class="num">${i+1}</span>${s.t}</summary><div class="inner">${s.h}</div></details>`).join('')
+    + (ex.answers.length?`<div class="note ok"><b>Endergebnis:</b> ${ex.answers.map(a=>`${sub(esc(a.name))} = <b>${fmt(a.value,Math.abs(a.value)<10?3:2)} ${a.unit}</b>`).join(' · ')}</div>`:'');
+  box.dataset.built='1';
+}
+['#exTopic','#exLevel','#exSource'].forEach(s=>$(s).addEventListener('change',renderExercises));
+
+/* ============================================================
+   FORMELSAMMLUNG
+   ============================================================ */
+function initFormulaCat(){
+  const cats=[...new Set(FORMULAS.map(f=>f.cat))];
+  $('#foCat').innerHTML='<option value="">alle Gebiete</option>'+cats.map(c=>`<option>${c}</option>`).join('');
+}
+let favOnly=false;
+function renderFormulas(){
+  const q=($('#foSearch').value||'').toLowerCase();
+  const cat=$('#foCat').value;
+  const list=FORMULAS.filter(f=>{
+    const hit=(!q)|| (f.name+' '+f.html+' '+f.sym+' '+f.cat+' '+f.use).toLowerCase().includes(q);
+    return hit && (!cat||f.cat===cat) && (!favOnly||state.formulas.fav[f.name]);
+  });
+  const wrap=$('#foList');
+  if(!list.length){ wrap.innerHTML='<div class="note">Keine Formel gefunden.</div>'; return; }
+  wrap.innerHTML=list.map(f=>{
+    const fav=!!state.formulas.fav[f.name];
+    return `<div class="fcard">
+      <button class="fav ${fav?'on':''}" data-fav="${esc(f.name)}" title="merken">${fav?'★':'☆'}</button>
+      <div class="cat">${f.cat}</div>
+      <h4 style="margin:2px 0 6px">${f.name}</h4>
+      <div class="formula" style="margin:6px 0">${f.html}</div>
+      <dl>
+        <dt>Formelzeichen</dt><dd>${f.sym}</dd>
+        <dt>Einheit</dt><dd>${f.unit}</dd>
+        <dt>Anwendung</dt><dd>${f.use}</dd>
+        <dt>Umformungen</dt><dd>${f.forms}</dd>
+      </dl>
+    </div>`;
+  }).join('');
+  $$('#foList [data-fav]').forEach(b=>b.addEventListener('click',()=>{
+    const n=b.dataset.fav; state.formulas.fav[n]=!state.formulas.fav[n]; save(); renderFormulas();
+  }));
+}
+$('#foSearch').addEventListener('input',renderFormulas);
+$('#foCat').addEventListener('change',renderFormulas);
+$('#foFavOnly').addEventListener('click',()=>{ favOnly=!favOnly; $('#foFavOnly').classList.toggle('acc',favOnly); renderFormulas(); });
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+let quizOrder=[];
+function startQuiz(onlyWrong){
+  quizOrder = QUIZ.map((q,i)=>i);
+  if(onlyWrong) quizOrder=quizOrder.filter(i=>state.quiz[i]===false);
+  if(!quizOrder.length) quizOrder=QUIZ.map((q,i)=>i);
+  const wrap=$('#quizList'); wrap.innerHTML='';
+  quizOrder.forEach(i=>wrap.appendChild(quizCard(i)));
+  updateQuizScore();
+}
+/* Antworten werden pro Frage deterministisch gemischt, damit die richtige
+   Antwort nicht immer an derselben Position steht (sonst "immer B" möglich). */
+function seededShuffle(arr,seed){
+  let s=(seed*2654435761)%2147483647; if(s<=0) s+=2147483646;
+  const rnd=()=>{ s=(s*16807)%2147483647; return (s-1)/2147483646; };
+  for(let k=arr.length-1;k>0;k--){ const j=Math.floor(rnd()*(k+1)); const t=arr[k]; arr[k]=arr[j]; arr[j]=t; }
+  return arr;
+}
+function quizOrderFor(i){
+  const q=QUIZ[i];
+  const idx=q.o.map((_,k)=>k);
+  return seededShuffle(idx,i+7);
+}
+function quizCard(i){
+  const q=QUIZ[i];
+  const order=quizOrderFor(i);
+  const card=document.createElement('div'); card.className='q'; card.id='q-'+i;
+  card.innerHTML=`<div class="qt">${sub(esc(q.q))}</div>`+
+    order.map((orig,pos)=>`<button class="opt" data-q="${i}" data-j="${orig}">${String.fromCharCode(65+pos)}. ${sub(esc(q.o[orig]))}</button>`).join('')+
+    `<div class="expl" id="qe-${i}">${sub(q.e)}</div>`;
+  card.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+    const j=+b.dataset.j, ok=(j===q.a);
+    card.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+    if(ok){ b.classList.add('correct'); state.quiz[i]=true; }
+    else { b.classList.add('wrong'); card.querySelector('.opt[data-j="'+q.a+'"]').classList.add('correct'); state.quiz[i]=false; }
+    $('#qe-'+i).classList.add('show'); save(); updateProgress(); updateQuizScore();
+  }));
+  return card;
+}
+function updateQuizScore(){
+  const total=QUIZ.length, done=Object.keys(state.quiz).length, ok=Object.values(state.quiz).filter(v=>v).length;
+  $('#quizScore').textContent=ok+' / '+done+' richtig (von '+total+')';
+}
+$('#quizStart').addEventListener('click',()=>startQuiz(false));
+$('#quizWrong').addEventListener('click',()=>startQuiz(true));
+$('#quizReset').addEventListener('click',()=>{ state.quiz={}; save(); $('#quizList').innerHTML=''; updateQuizScore(); updateProgress(); });
+
+/* ============================================================
+   FORTSCHRITT-VIEW
+   ============================================================ */
+function renderProgress(){
+  $('#fsList').innerHTML=CHAPTERS.map(c=>`<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:7px 0">
+    <span><span class="badge-dot" style="background:${state.chapters[c.id]?'var(--ok)':'#c4d2e6'}"></span>${c.name}</span>
+    <button class="btn ghost small" data-toggle-ch="${c.id}">${state.chapters[c.id]?'✓ erledigt':'als erledigt markieren'}</button></div>`).join('');
+  $$('#fsList [data-toggle-ch]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.toggleCh; state.chapters[id]=!state.chapters[id]; save(); renderChapterDone(); updateProgress(); renderProgress(); }));
+}
+$('#fsReset').addEventListener('click',()=>{ if(confirm('Lernfortschritt wirklich zurücksetzen?')){ state={chapters:{},exercises:{},quiz:{},formulas:{fav:{}},views:{}}; save(); renderChapterDone(); updateProgress(); renderProgress(); renderExercises(); renderFormulas(); updateQuizScore(); } });
+$('#fsExport').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='kinematik_fortschritt.json'; a.click();
+});
+$('#resetBtn').addEventListener('click',()=>{ if(confirm('Gesamten Lernfortschritt zurücksetzen?')){ state={chapters:{},exercises:{},quiz:{},formulas:{fav:{}},views:{}}; save(); renderChapterDone(); updateProgress(); renderProgress(); renderExercises(); renderFormulas(); updateQuizScore(); } });
+
+/* ============================================================
+   CANVAS-HILFEN
+   ============================================================ */
+function setup(cv){
+  const dpr=window.devicePixelRatio||1;
+  const w=cv.clientWidth||600;
+  if(!cv.dataset.h) cv.dataset.h=parseInt(cv.getAttribute('height'))||200; /* logische Höhe nur einmal merken */
+  const h=parseInt(cv.dataset.h);
+  cv.style.height=h+'px';
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){
+    cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+  }
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  return {ctx,w,h};
+}
+function arrow(ctx,x1,y1,x2,y2,color,width){
+  ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=width||2;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  const ang=Math.atan2(y2-y1,x2-x1), s=8;
+  ctx.beginPath(); ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-s*Math.cos(ang-0.4), y2-s*Math.sin(ang-0.4));
+  ctx.lineTo(x2-s*Math.cos(ang+0.4), y2-s*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fill();
+}
+/* roundRect mit Fallback für ältere Browser (Schul-Rechner) */
+function roundBox(ctx,x,y,w,h,r){
+  if(typeof ctx.roundRect==='function'){ ctx.roundRect(x,y,w,h,r); return; }
+  r=Math.min(r,Math.abs(w)/2,Math.abs(h)/2);
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function axes(ctx,x0,y0,x1,y1,xlab,ylab){
+  ctx.strokeStyle='#9fb3cd'; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x0,y1); ctx.stroke();
+  ctx.fillStyle='#455468'; ctx.font='12px Segoe UI, sans-serif';
+  ctx.fillText(xlab,x1-10,y0+16); ctx.fillText(ylab,x0+6,y1+2);
+}
+
+/* ============================================================
+   ANIMATIONEN
+   ============================================================ */
+const anims={
+  anim1:{t:0,playing:false,v:10,s0:0,L:400},
+  anim2:{t:0,playing:false,v0:0,a:4,L:300},
+  anim3:{t:0,playing:false,v0:0,mode:'fall',h0:60,top:0},
+  anim4:{t:0,playing:false,v0:20,alpha:45}
+};
+function togglePlay(id){ anims[id].playing=!anims[id].playing; if(anims[id].playing) last=performance.now(); }
+function resetAnim(id){ const a=anims[id]; a.t=0; a.playing=false; drawAnim(id); }
+function resizeAll(){ ['anim1','anim2','anim3','anim4'].forEach(drawAnim); }
+
+function drawAnim(id){
+  const cv=$('#'+id); if(!cv||!cv.clientWidth) return;
+  if(id==='anim1') drawAnim1(cv);
+  if(id==='anim2') drawAnim2(cv);
+  if(id==='anim3') drawAnim3(cv);
+  if(id==='anim4') drawAnim4(cv);
+}
+function drawAnim1(cv){
+  const {ctx,w,h}=setup(cv); const a=anims.anim1;
+  const margin=40, y=h-60, len=w-2*margin;
+  ctx.strokeStyle='#d9e2ef'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(margin,y); ctx.lineTo(margin+len,y); ctx.stroke();
+  const s=Math.min(a.s0+a.v*a.t, a.L);
+  const x=margin+(s/a.L)*len;
+  ctx.fillStyle='#e8f0fb'; ctx.strokeStyle='#2b5aa0'; ctx.lineWidth=1.5;
+  ctx.beginPath(); roundBox(ctx,x-26,y-24,52,24,5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#13315c'; ctx.beginPath(); ctx.arc(x-14,y-4,5,0,7); ctx.arc(x+14,y-4,5,0,7); ctx.fill();
+  arrow(ctx,x+28,y-12,x+28+a.v*1.2,y-12,'#17b3c9',3);
+  ctx.fillStyle='#13315c'; ctx.font='13px Segoe UI'; ctx.fillText('s = '+fmt(s,1)+' m', margin, 24);
+  ctx.fillText('v = '+fmt(a.v,1)+' m/s', margin, 42);
+  $('#a1t').textContent=fmt(a.t,1)+' s'; $('#a1sp').textContent=fmt(s,1)+' m'; $('#a1ds').textContent=fmt(a.v*a.t,1)+' m';
+}
+function drawAnim2(cv){
+  const {ctx,w,h}=setup(cv); const a=anims.anim2;
+  const margin=40, y=h-60, len=w-2*margin;
+  ctx.strokeStyle='#d9e2ef'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(margin,y); ctx.lineTo(margin+len,y); ctx.stroke();
+  const v=a.v0+a.a*a.t, s=a.v0*a.t+0.5*a.a*a.t*a.t;
+  const x=margin+Math.min(s/a.L,1)*len;
+  ctx.fillStyle='#fdf0dc'; ctx.strokeStyle='#d9822b'; ctx.lineWidth=1.5;
+  ctx.beginPath(); roundBox(ctx,x-26,y-24,52,24,5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#9a6113'; ctx.beginPath(); ctx.arc(x-14,y-4,5,0,7); ctx.arc(x+14,y-4,5,0,7); ctx.fill();
+  arrow(ctx,x+28,y-12,x+28+Math.min(v,40)*1.4,y-12,'#17b3c9',3);
+  ctx.fillStyle='#13315c'; ctx.font='13px Segoe UI'; ctx.fillText('v = '+fmt(v,1)+' m/s', margin, 24);
+  ctx.fillText('s = '+fmt(s,1)+' m', margin, 42);
+  $('#a2t').textContent=fmt(a.t,1)+' s'; $('#a2vOut').textContent=fmt(v,1)+' m/s'; $('#a2sOut').textContent=fmt(s,1)+' m';
+}
+function drawAnim3(cv){
+  const {ctx,w,h}=setup(cv); const a=anims.anim3;
+  const ground=h-30, top=20, H=ground-top;
+  const maxH=a.mode==='wurf'? Math.max(20,(a.v0*a.v0)/(2*G)) : Math.max(20,a.h0);
+  ctx.strokeStyle='#9fb3cd'; ctx.beginPath(); ctx.moveTo(30,top); ctx.lineTo(30,ground); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(30,ground); ctx.lineTo(w-20,ground); ctx.stroke();
+  let pos, v;
+  if(a.mode==='fall'){ pos=a.h0-(a.v0*a.t+0.5*G*a.t*a.t); v=-(a.v0+G*a.t); }
+  else { pos=a.v0*a.t-0.5*G*a.t*a.t; v=a.v0-G*a.t; }
+  const yy=ground-(pos/maxH)*H;
+  ctx.fillStyle='#17b3c9'; ctx.beginPath(); ctx.arc(30+60,Math.max(top,Math.min(ground,yy)),9,0,7); ctx.fill();
+  arrow(ctx,30+60,Math.max(top,Math.min(ground,yy)),30+60,Math.max(top,Math.min(ground,yy))-Math.max(-60,Math.min(60,v*2)),'#d64550',3);
+  if(a.mode==='wurf'){ const apex=(a.v0*a.v0)/(2*G); const yA=ground-(apex/maxH)*H; ctx.strokeStyle='#f5a524'; ctx.setLineDash([5,4]); ctx.beginPath(); ctx.moveTo(30,yA); ctx.lineTo(w-20,yA); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle='#9a6113'; ctx.fillText('höchster Punkt',40,yA-6); }
+  ctx.fillStyle='#13315c'; ctx.font='13px Segoe UI'; ctx.fillText('h = '+fmt(Math.max(0,pos),1)+' m',40,24);
+  $('#a3t').textContent=fmt(a.t,2)+' s'; $('#a3vOut').textContent=fmt(v,1)+' m/s'; $('#a3hOut').textContent=fmt(Math.max(0,pos),1)+' m';
+  $('#a3top').textContent=(a.mode==='wurf')?fmt((a.v0*a.v0)/(2*G),1)+' m':(fmt(a.h0,0)+' m');
+}
+function drawAnim4(cv){
+  const {ctx,w,h}=setup(cv); const a=anims.anim4;
+  const rad=a.alpha*Math.PI/180;
+  const vx=a.v0*Math.cos(rad), vy0=a.v0*Math.sin(rad);
+  const tW=2*vy0/G, W=vx*tW, Hmax=vy0*vy0/(2*G);
+  const m=44, plotW=w-2*m, plotH=h-2*m;
+  const sc=Math.min(plotW/Math.max(W,1), plotH/Math.max(Hmax,1));
+  const x0=m, y0=h-m;
+  ctx.strokeStyle='#9fb3cd'; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(w-16,y0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x0,16); ctx.stroke();
+  // Bahn
+  ctx.strokeStyle='#d64550'; ctx.lineWidth=2; ctx.beginPath();
+  for(let i=0;i<=120;i++){ const t=tW*i/120; const x=x0+vx*t*sc, y=y0-(vy0*t-0.5*G*t*t)*sc; i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+  ctx.stroke();
+  const t=Math.min(a.t,tW);
+  const px=x0+vx*t*sc, py=y0-(vy0*t-0.5*G*t*t)*sc;
+  const vy=vy0-G*t;
+  arrow(ctx,px,py,px+vx*sc*0.4,py,'#17b3c9',3);
+  arrow(ctx,px,py,px,py-vy*sc*0.4,'#f5a524',3);
+  ctx.fillStyle='#d64550'; ctx.beginPath(); ctx.arc(px,py,7,0,7); ctx.fill();
+  ctx.fillStyle='#13315c'; ctx.font='13px Segoe UI'; ctx.fillText('t = '+fmt(t,2)+' s',x0+4,20);
+  $('#a4t').textContent=fmt(tW,2)+' s'; $('#a4h').textContent=fmt(Hmax,1)+' m'; $('#a4w').textContent=fmt(W,1)+' m';
+  $('#a4vxy').textContent=fmt(vx,1)+' / '+fmt(vy,1)+' m/s';
+}
+/* Slider */
+$('#a1vR').addEventListener('input',e=>{ anims.anim1.v=+e.target.value; $('#a1v').textContent=e.target.value; drawAnim1($('#anim1')); });
+$('#a1sR').addEventListener('input',e=>{ anims.anim1.s0=+e.target.value; $('#a1s').textContent=e.target.value; drawAnim1($('#anim1')); });
+$('#a2vR').addEventListener('input',e=>{ anims.anim2.v0=+e.target.value; $('#a2v').textContent=e.target.value; drawAnim2($('#anim2')); });
+$('#a2aR').addEventListener('input',e=>{ anims.anim2.a=+e.target.value; $('#a2a').textContent=e.target.value; drawAnim2($('#anim2')); });
+$('#a3vR').addEventListener('input',e=>{ anims.anim3.v0=+e.target.value; $('#a3v').textContent=e.target.value; anims.anim3.t=0; drawAnim3($('#anim3')); });
+$('#a3mode').addEventListener('change',e=>{ anims.anim3.mode=e.target.value; anims.anim3.t=0; drawAnim3($('#anim3')); });
+$('#a4vR').addEventListener('input',e=>{ anims.anim4.v0=+e.target.value; $('#a4v').textContent=e.target.value; anims.anim4.t=0; drawAnim4($('#anim4')); });
+$('#a4aR').addEventListener('input',e=>{ anims.anim4.alpha=+e.target.value; $('#a4a').textContent=e.target.value; anims.anim4.t=0; drawAnim4($('#anim4')); });
+
+/* ============================================================
+   VERKNÜPFTE DIAGRAMME
+   ============================================================ */
+const dg={s0:0,v0:0,a:2,T:10,t:0,playing:false};
+function drawDiagrams(){
+  if(!$('#dgS')||!$('#dgS').clientWidth) return;
+  plotDiagram($('#dgS'),'s', '#2b5aa0');
+  plotDiagram($('#dgV'),'v', '#17b3c9');
+  plotDiagram($('#dgA2'),'a', '#d9822b');
+  const t=dg.t;
+  const s=dg.s0+dg.v0*t+0.5*dg.a*t*t;
+  const v=dg.v0+dg.a*t;
+  $('#dgrT').textContent=fmt(t,2)+' s'; $('#dgrS').textContent=fmt(s,2)+' m';
+  $('#dgrV').textContent=fmt(v,2)+' m/s'; $('#dgrA').textContent=fmt(dg.a,2)+' m/s²';
+  $('#dgrDs').textContent=fmt(dg.v0*t+0.5*dg.a*t*t,2)+' m';
+  $('#dgrDv').textContent=fmt(dg.a*t,2)+' m/s';
+  $('#dgTval').textContent='t = '+fmt(t,2)+' s';
+}
+function plotDiagram(cv,kind,color){
+  const {ctx,w,h}=setup(cv);
+  const m={l:48,r:16,t:16,b:28};
+  const x0=m.l,y0=h-m.b,x1=w-m.r,y1=m.t;
+  // Wertebereich
+  let ymin=0,ymax=0;
+  for(let i=0;i<=100;i++){ const t=dg.T*i/100; const val=kind==='s'?dg.s0+dg.v0*t+0.5*dg.a*t*t: kind==='v'?dg.v0+dg.a*t: dg.a; ymin=Math.min(ymin,val); ymax=Math.max(ymax,val); }
+  if(ymax-ymin<1e-6){ ymax+=1; ymin-=1; }
+  const pad=(ymax-ymin)*0.1; ymax+=pad; ymin-=pad;
+  const X=t=>x0+(t/dg.T)*(x1-x0);
+  const Y=v=>y0-((v-ymin)/(ymax-ymin))*(y0-y1);
+  // Gitter + Nullachse
+  ctx.strokeStyle='#eef3fa'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){ const yy=y1+(y0-y1)*i/4; ctx.beginPath(); ctx.moveTo(x0,yy); ctx.lineTo(x1,yy); ctx.stroke(); }
+  ctx.strokeStyle='#c7d6ea'; ctx.beginPath(); ctx.moveTo(x0,Y(0)); ctx.lineTo(x1,Y(0)); ctx.stroke();
+  axes(ctx,x0,y0,x1,y1,'t [s]', kind==='s'?'s [m]':kind==='v'?'v [m/s]':'a [m/s²]');
+  // Fläche bis Cursor
+  ctx.fillStyle=kind==='v'?'rgba(23,179,201,.18)':kind==='a'?'rgba(217,130,43,.18)':'rgba(43,90,160,.12)';
+  ctx.beginPath(); ctx.moveTo(X(0),Y(0));
+  for(let i=0;i<=100;i++){ const t=dg.t*i/100; const val=kind==='s'?dg.s0+dg.v0*t+0.5*dg.a*t*t: kind==='v'?dg.v0+dg.a*t: dg.a; ctx.lineTo(X(t),Y(val)); }
+  ctx.lineTo(X(dg.t),Y(0)); ctx.closePath(); ctx.fill();
+  // Kurve
+  ctx.strokeStyle=color; ctx.lineWidth=2.4; ctx.beginPath();
+  for(let i=0;i<=120;i++){ const t=dg.T*i/120; const val=kind==='s'?dg.s0+dg.v0*t+0.5*dg.a*t*t: kind==='v'?dg.v0+dg.a*t: dg.a; i?ctx.lineTo(X(t),Y(val)):ctx.moveTo(X(t),Y(val)); }
+  ctx.stroke();
+  // Cursor
+  ctx.strokeStyle='#d64550'; ctx.setLineDash([4,3]); ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(X(dg.t),y1); ctx.lineTo(X(dg.t),y0); ctx.stroke(); ctx.setLineDash([]);
+  const val=dg.s0+dg.v0*dg.t+0.5*dg.a*dg.t*dg.t; const vv=dg.v0+dg.a*dg.t;
+  const cv2=kind==='s'?val:kind==='v'?vv:dg.a;
+  ctx.fillStyle='#d64550'; ctx.beginPath(); ctx.arc(X(dg.t),Y(cv2),5,0,7); ctx.fill();
+  // Achsenbeschriftung min/max
+  ctx.fillStyle='#7d8ba0'; ctx.font='11px Segoe UI';
+  ctx.fillText(fmt(ymax,1),6,y1+8); ctx.fillText(fmt(ymin,1),6,y0-2);
+}
+function updateDgLabels(){ $('#dgS0').textContent=dg.s0; $('#dgV0').textContent=dg.v0; $('#dgA').textContent=dg.a; $('#dgT').textContent=dg.T; }
+['dgS0R','dgV0R','dgAR','dgTR'].forEach(id=>$('#'+id).addEventListener('input',e=>{
+  const v=+e.target.value;
+  if(id==='dgS0R')dg.s0=v; if(id==='dgV0R')dg.v0=v; if(id==='dgAR')dg.a=v; if(id==='dgTR'){dg.T=v; if(dg.t>dg.T)dg.t=dg.T;}
+  updateDgLabels(); drawDiagrams();
+}));
+$('#dgPlay').addEventListener('click',()=>{ dg.playing=true; last=performance.now(); });
+$('#dgPause').addEventListener('click',()=>{ dg.playing=false; });
+$('#dgReset').addEventListener('click',()=>{ dg.t=0; dg.playing=false; drawDiagrams(); });
+$('#dgFwd').addEventListener('click',()=>{ dg.t=Math.min(dg.T,dg.t+dg.T/40); dg.playing=false; drawDiagrams(); });
+$('#dgBack').addEventListener('click',()=>{ dg.t=Math.max(0,dg.t-dg.T/40); dg.playing=false; drawDiagrams(); });
+
+/* ============================================================
+   ANIMATIONS-LOOP
+   ============================================================ */
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  let needDg=false;
+  ['anim1','anim2','anim3','anim4'].forEach(id=>{
+    const a=anims[id]; if(!a.playing) return;
+    a.t+=dt;
+    if(id==='anim1'){ if(a.s0+a.v*a.t>a.L){ a.t=0; } }
+    if(id==='anim2'){ if(a.v0*a.t+0.5*a.a*a.t*a.t>a.L){ a.t=0; } }
+    if(id==='anim3'){ const pos=a.mode==='fall'?a.h0-(a.v0*a.t+0.5*G*a.t*a.t):a.v0*a.t-0.5*G*a.t*a.t; if(pos<=0 && a.t>0.2){ a.t=0; } }
+    if(id==='anim4'){ const rad=a.alpha*Math.PI/180, tW=2*a.v0*Math.sin(rad)/G; if(a.t>tW){ a.t=0; } }
+    drawAnim(id);
+  });
+  if(dg.playing){ dg.t+=dt; if(dg.t>=dg.T){ dg.t=dg.T; dg.playing=false; } needDg=true; }
+  if(needDg && document.getElementById('view-diagramme').classList.contains('active')) drawDiagrams();
+  requestAnimationFrame(loop);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+/* Tabellen in einen Scroll-Container setzen (wichtig auf Handy/Tablet) */
+function wrapTables(){
+  $$('table.tbl').forEach(t=>{
+    const p=t.parentElement;
+    if(!p || p.classList.contains('tblwrap')) return;
+    const w=document.createElement('div');
+    w.className='tblwrap';
+    p.insertBefore(w,t);
+    w.appendChild(t);
+  });
+}
+function init(){
+  wrapTables();
+  initTopicSelect(); renderExercises();
+  initFormulaCat(); renderFormulas();
+  startQuiz(false);
+  renderChapterDone(); updateProgress();
+  updateQuizScore();
+  $('#kpiCh').textContent=CHAPTERS.length;
+  $('#kpiEx').textContent=EXERCISES.length;
+  $('#kpiFo').textContent=FORMULAS.length;
+  $('#kpiPdf').textContent=66;
+  updateDgLabels();
+  requestAnimationFrame(()=>{ resizeAll(); drawDiagrams(); });
+  requestAnimationFrame(loop);
+  window.addEventListener('resize',()=>{ resizeAll(); drawDiagrams(); });
+}
+init();
+})();
+</script>
+</body>
+</html>
